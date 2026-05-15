@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="parchment" data-text-size="medium">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oral Surgery — 4th Stage Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== THEMES ===== */
+  :root, [data-theme="parchment"] {
+    --bg: #f4efe4;
+    --surface: #faf7f0;
+    --surface2: #ebe4d4;
+    --border: #c8bda8;
+    --accent: #7a2038;
+    --accent2: #5c4a32;
+    --danger: #9b2c2c;
+    --success: #2d6a4f;
+    --text: #2a2218;
+    --muted: #6b5f4a;
+    --header-bg: #ebe4d4;
+    --btn-text: #faf7f0;
+    --shadow: rgba(42, 34, 24, 0.08);
+    --card-r: 4px;
+  }
+
+  [data-theme="navy"] {
+    --bg: #eef2f7;
+    --surface: #ffffff;
+    --surface2: #dce4ef;
+    --border: #a8b8cc;
+    --accent: #1a3a5c;
+    --accent2: #2a5080;
+    --danger: #a83232;
+    --success: #1e6b4a;
+    --text: #152535;
+    --muted: #5a6d82;
+    --header-bg: #dce4ef;
+    --btn-text: #ffffff;
+    --shadow: rgba(21, 37, 53, 0.1);
+  }
+
+  [data-theme="forest"] {
+    --bg: #edf3ed;
+    --surface: #f7faf7;
+    --surface2: #d8e6d8;
+    --border: #a8c4a8;
+    --accent: #2d5c3e;
+    --accent2: #4a7c59;
+    --danger: #8b3a3a;
+    --success: #1f5c38;
+    --text: #1a2e1f;
+    --muted: #4d6b52;
+    --header-bg: #d8e6d8;
+    --btn-text: #f7faf7;
+    --shadow: rgba(26, 46, 31, 0.08);
+  }
+
+  [data-theme="slate"] {
+    --bg: #2c2f34;
+    --surface: #363a40;
+    --surface2: #40454c;
+    --border: #525862;
+    --accent: #9eb4c8;
+    --accent2: #b8c8d4;
+    --danger: #d49191;
+    --success: #8fbf9f;
+    --text: #e2e6eb;
+    --muted: #a0a8b3;
+    --header-bg: #32363c;
+    --btn-text: #f2f4f7;
+    --shadow: rgba(0, 0, 0, 0.25);
+    --card-r: 4px;
+  }
+
+  /* ===== TEXT SIZE ===== */
+  html { --text-scale: 1; }
+  html[data-text-size="small"] { --text-scale: 0.92; }
+  html[data-text-size="medium"] { --text-scale: 1; }
+  html[data-text-size="large"] { --text-scale: 1.18; }
+  html[data-text-size="xlarge"] { --text-scale: 1.38; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size: calc(1rem * var(--text-scale));
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  #app { max-width: 900px; margin: 0 auto; }
+
+  h1, h2, .q-text, .big-score, .review-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+  }
+
+  /* ===== SETUP ===== */
+  #setup-screen {
+    min-height: 100vh;
+    padding: 48px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .classic-header {
+    text-align: center;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 24px;
+    margin-bottom: 36px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .institution {
+    font-size: calc(0.75rem * var(--text-scale));
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: calc(2rem * var(--text-scale));
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: calc(0.95rem * var(--text-scale));
+    font-style: italic;
+  }
+
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    box-shadow: 0 2px 12px var(--shadow);
+    padding: 32px;
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: calc(0.72rem * var(--text-scale));
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .field-hint {
+    font-size: calc(0.82rem * var(--text-scale));
+    color: var(--muted);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .btn-group.three-col { grid-template-columns: 1fr 1fr 1fr; }
+  .btn-group.four-col { grid-template-columns: repeat(4, 1fr); }
+  .btn-group.theme-grid { grid-template-columns: 1fr 1fr; }
+
+  .mode-btn, .theme-btn, .size-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 12px 14px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: calc(0.88rem * var(--text-scale));
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    text-align: center;
+  }
+
+  .mode-btn:hover, .theme-btn:hover, .size-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .mode-btn.active, .theme-btn.active, .size-btn.active {
+    border-color: var(--accent);
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .theme-btn .swatch {
+    display: block;
+    width: 100%;
+    height: 6px;
+    border-radius: 2px;
+    margin-bottom: 6px;
+  }
+
+  .theme-btn[data-theme-id="parchment"] .swatch { background: linear-gradient(90deg, #f4efe4, #7a2038); }
+  .theme-btn[data-theme-id="navy"] .swatch { background: linear-gradient(90deg, #eef2f7, #1a3a5c); }
+  .theme-btn[data-theme-id="forest"] .swatch { background: linear-gradient(90deg, #edf3ed, #2d5c3e); }
+  .theme-btn[data-theme-id="slate"] .swatch { background: linear-gradient(90deg, #2c2f34, #9eb4c8); }
+
+  .count-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .preset-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 8px 14px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: calc(0.85rem * var(--text-scale));
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover { border-color: var(--accent); color: var(--text); }
+  .preset-btn.active {
+    border-color: var(--accent);
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .custom-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .custom-input-wrap input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: calc(0.9rem * var(--text-scale));
+    width: 100px;
+    outline: none;
+  }
+
+  .custom-input-wrap input:focus { border-color: var(--accent); }
+  .custom-input-wrap span { color: var(--muted); font-size: calc(0.85rem * var(--text-scale)); }
+
+  .lecture-range-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .lecture-range-row label {
+    font-size: calc(0.85rem * var(--text-scale));
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 400;
+  }
+
+  .lecture-range-row select {
+    flex: 1;
+    min-width: 120px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: calc(0.88rem * var(--text-scale));
+  }
+
+  .lecture-range-row select:focus { border-color: var(--accent); outline: none; }
+
+  .lecture-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .lecture-details {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 0;
+    background: var(--surface2);
+  }
+
+  .lecture-details summary {
+    padding: 12px 14px;
+    cursor: pointer;
+    font-size: calc(0.88rem * var(--text-scale));
+    color: var(--accent);
+    font-weight: 600;
+    list-style: none;
+  }
+
+  .lecture-details summary::-webkit-details-marker { display: none; }
+
+  .lecture-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .lecture-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: calc(0.82rem * var(--text-scale));
+    color: var(--text);
+    cursor: pointer;
+    line-height: 1.35;
+  }
+
+  .lecture-check input {
+    margin-top: 3px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+  }
+
+  .lecture-check .lec-count {
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--card-r);
+    color: var(--btn-text);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: calc(1.05rem * var(--text-scale));
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
+  }
+
+  .start-btn:hover { opacity: 0.9; }
+
+  .total-note {
+    text-align: center;
+    font-size: calc(0.85rem * var(--text-scale));
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  /* ===== QUIZ ===== */
+  #quiz-screen { display: none; min-height: 100vh; }
+
+  .quiz-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--header-bg);
+    border-bottom: 2px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .progress-wrap { flex: 1; min-width: 180px; }
+  .progress-label {
+    font-size: calc(0.75rem * var(--text-scale));
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.35s ease;
+  }
+
+  .score-pill {
+    font-size: calc(0.8rem * var(--text-scale));
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .score-pill.hidden { visibility: hidden; }
+  .score-c { color: var(--success); margin-right: 10px; }
+  .score-w { color: var(--danger); }
+
+  .quit-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: calc(0.82rem * var(--text-scale));
+    cursor: pointer;
+  }
+
+  .quit-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  .question-outer {
+    padding: 36px 24px 80px;
+  }
+
+  .q-number {
+    font-size: calc(0.75rem * var(--text-scale));
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+
+  .q-text {
+    font-size: calc(1.2rem * var(--text-scale));
+    font-weight: 700;
+    line-height: 1.55;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .option-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 14px 18px;
+    text-align: left;
+    color: var(--text);
+    font-family: inherit;
+    font-size: calc(1rem * var(--text-scale));
+    line-height: 1.5;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .opt-letter {
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 26px;
+    flex-shrink: 0;
+  }
+
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: var(--surface2);
+    font-weight: 600;
+  }
+
+  .option-btn.correct {
+    border-color: var(--success);
+    background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  }
+
+  .option-btn.correct .opt-letter { color: var(--success); }
+
+  .option-btn.wrong {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  }
+
+  .option-btn.wrong .opt-letter { color: var(--danger); }
+
+  .option-btn.reveal {
+    border-color: var(--success);
+    opacity: 0.85;
+  }
+
+  .feedback-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    font-size: calc(0.95rem * var(--text-scale));
+    display: none;
+    margin-bottom: 20px;
+  }
+
+  .feedback-box.show { display: block; }
+  .feedback-box.correct-fb { border-color: var(--success); color: var(--success); }
+  .feedback-box.wrong-fb { border-color: var(--danger); color: var(--danger); }
+
+  .nav-row { display: flex; justify-content: flex-end; gap: 10px; }
+
+  .nav-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 11px 22px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: calc(0.92rem * var(--text-scale));
+    cursor: pointer;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); }
+  .nav-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--btn-text);
+    font-weight: 700;
+  }
+
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== RESULTS ===== */
+  #results-screen {
+    display: none;
+    min-height: 100vh;
+    padding: 40px 24px 64px;
+  }
+
+  .results-inner { max-width: 760px; margin: 0 auto; }
+
+  .result-hero {
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+  }
+
+  .big-score {
+    font-size: calc(3.5rem * var(--text-scale));
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .result-label { color: var(--muted); font-style: italic; margin-bottom: 16px; }
+
+  .grade-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border: 1px solid var(--border);
+    font-weight: 700;
+    font-size: calc(1rem * var(--text-scale));
+  }
+
+  .grade-A { color: var(--success); border-color: var(--success); }
+  .grade-B { color: var(--accent2); border-color: var(--accent2); }
+  .grade-C { color: #8a6d1a; border-color: #8a6d1a; }
+  .grade-D { color: var(--danger); border-color: var(--danger); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: calc(1.8rem * var(--text-scale));
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .stat-num.green { color: var(--success); }
+  .stat-num.red { color: var(--danger); }
+  .stat-num.blue { color: var(--accent2); }
+  .stat-lbl { font-size: calc(0.78rem * var(--text-scale)); color: var(--muted); }
+
+  .results-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+
+  .results-actions .nav-btn { flex: 1; text-align: center; min-width: 140px; }
+
+  .review-section { border-top: 2px solid var(--border); padding-top: 28px; }
+
+  .review-title {
+    font-size: calc(1.15rem * var(--text-scale));
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--accent);
+  }
+
+  .review-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+  }
+
+  .review-item.was-wrong { border-left: 4px solid var(--danger); }
+  .review-item.was-correct { border-left: 4px solid var(--success); }
+  .review-item.unanswered { border-left: 4px solid var(--muted); }
+
+  .review-q {
+    font-size: calc(0.95rem * var(--text-scale));
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .review-a {
+    font-size: calc(0.88rem * var(--text-scale));
+    color: var(--muted);
+  }
+
+  .review-a span { display: block; margin-top: 4px; }
+  .review-a .your-ans { color: var(--danger); }
+  .review-a .correct-ans { color: var(--success); }
+
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .copyright-watermark {
+    position: fixed;
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    z-index: 10000;
+    pointer-events: none;
+    user-select: none;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: calc(0.75rem * var(--text-scale));
+    font-weight: 700;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    border-radius: var(--card-r);
+    box-shadow: 0 2px 10px var(--shadow);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="setup-screen">
+  <div class="classic-header">
+    <div class="institution">Dr. Cube Dentistry · 4th Stage</div>
+    <h1>Oral Surgery Quiz</h1>
+    <p class="subtitle" id="subtitle-text">Oral Surgery MCQs · <span id="total-count-label">957</span> questions · 21 lectures</p>
+  </div>
+
+  <div class="setup-card">
+    <div class="field">
+      <label>Color Theme</label>
+      <div class="btn-group theme-grid">
+        <button type="button" class="theme-btn active" data-theme-id="parchment" onclick="selectTheme('parchment')"><span class="swatch"></span>Parchment</button>
+        <button type="button" class="theme-btn" data-theme-id="navy" onclick="selectTheme('navy')"><span class="swatch"></span>Navy</button>
+        <button type="button" class="theme-btn" data-theme-id="forest" onclick="selectTheme('forest')"><span class="swatch"></span>Forest</button>
+        <button type="button" class="theme-btn" data-theme-id="slate" onclick="selectTheme('slate')"><span class="swatch"></span>Slate (dark)</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Text Size</label>
+      <div class="btn-group four-col">
+        <button type="button" class="size-btn" data-size="small" onclick="selectTextSize('small')">Small</button>
+        <button type="button" class="size-btn active" data-size="medium" onclick="selectTextSize('medium')">Medium</button>
+        <button type="button" class="size-btn" data-size="large" onclick="selectTextSize('large')">Large</button>
+        <button type="button" class="size-btn" data-size="xlarge" onclick="selectTextSize('xlarge')">Extra Large</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Answer Feedback</label>
+      <div class="btn-group">
+        <button type="button" class="mode-btn active" id="fb-instant" onclick="selectFeedback('instant')">Show immediately</button>
+        <button type="button" class="mode-btn" id="fb-deferred" onclick="selectFeedback('deferred')">Show at end only</button>
+      </div>
+      <p class="field-hint">Show at end hides correct answers until you finish the quiz.</p>
+    </div>
+    <div class="field">
+      <label>Question Order</label>
+      <div class="btn-group">
+        <button type="button" class="mode-btn active" id="mode-random" onclick="selectMode('random')">Random</button>
+        <button type="button" class="mode-btn" id="mode-ordered" onclick="selectMode('ordered')">In order</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Lectures to include</label>
+      <div class="lecture-range-row">
+        <label for="lecture-from">From</label>
+        <select id="lecture-from" onchange="onLectureRangeChange()"></select>
+        <label for="lecture-to">To</label>
+        <select id="lecture-to" onchange="onLectureRangeChange()"></select>
+      </div>
+      <div class="lecture-actions">
+        <button type="button" class="preset-btn" onclick="setLectureRange(1, 21)">All lectures (1–21)</button>
+      </div>
+      <p class="field-hint" id="lecture-filter-summary">—</p>
+      <details class="lecture-details" id="lecture-details">
+        <summary>Or pick individual lectures</summary>
+        <div id="lecture-checkboxes" class="lecture-grid"></div>
+      </details>
+    </div>
+    <div class="field">
+      <label>Number of Questions</label>
+      <div class="count-row">
+        <button type="button" class="preset-btn active" onclick="selectPreset(10, event)">10</button>
+        <button type="button" class="preset-btn" onclick="selectPreset(20, event)">20</button>
+        <button type="button" class="preset-btn" onclick="selectPreset(50, event)">50</button>
+        <button type="button" class="preset-btn" onclick="selectPreset(100, event)">100</button>
+        <button type="button" class="preset-btn" id="preset-all" onclick="selectPreset('all', event)">All</button>
+      </div>
+      <div class="custom-input-wrap">
+        <input type="number" id="custom-count" min="1" placeholder="Custom" oninput="selectCustom(this.value)">
+        <span>questions</span>
+      </div>
+    </div>
+    <p class="total-note">In pool: <strong id="total-available">957</strong> questions (after lecture filter)</p>
+    <button type="button" class="start-btn" onclick="startQuiz()">Begin Quiz</button>
+  </div>
+</div>
+
+<div id="quiz-screen">
+  <div class="quiz-header">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="prog-text">Question 1 of 10</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="score-pill" id="score-pill">
+      <span class="score-c">Correct: <span id="score-correct">0</span></span>
+      <span class="score-w">Wrong: <span id="score-wrong">0</span></span>
+    </div>
+    <button type="button" class="quit-btn" onclick="quitQuiz()">Quit</button>
+  </div>
+  <div class="question-outer">
+    <div id="q-content" class="fade-in">
+      <div class="q-number" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options-list" id="options-list"></div>
+      <div class="feedback-box" id="feedback-box"></div>
+      <div class="nav-row">
+        <button type="button" class="nav-btn primary" id="next-btn" onclick="nextQuestion()" disabled>Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="results-screen">
+  <div class="results-inner">
+    <div class="result-hero">
+      <div class="big-score" id="res-pct">—</div>
+      <div class="result-label">Final Score</div>
+      <div class="grade-badge" id="res-grade"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num green" id="res-correct">0</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat-card"><div class="stat-num red" id="res-wrong">0</div><div class="stat-lbl">Wrong</div></div>
+      <div class="stat-card"><div class="stat-num blue" id="res-total">0</div><div class="stat-lbl">Total</div></div>
+    </div>
+    <div class="results-actions">
+      <button type="button" class="nav-btn" onclick="goSetup()">New Quiz</button>
+      <button type="button" class="nav-btn primary" onclick="startQuiz()">Retry</button>
+    </div>
+    <div class="review-section">
+      <div class="review-title">Answer Review</div>
+      <div id="review-list"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="copyright-watermark" aria-hidden="true">By: Dr. Kamal Ahmed</div>
+
+<script src="questions_data.js"></script>
+<script src="quiz_app.js"></script>
+</body>
+</html>
