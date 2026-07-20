@@ -1,939 +1,623 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0E7C7B">
-<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16283E">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>DentLab</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>مندوب الأسنان — الكرخ</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-:root{
-  --bg:#F4F6F8; --card:#FFFFFF; --ink:#1B2B33; --ink-soft:#5A6E77;
-  --line:#DCE3E5; --teal:#0E7C7B; --teal-deep:#0A5C5B; --teal-soft:#E3F0EF;
-  --amber:#D9A441; --amber-soft:#F7EEDB; --coral:#D95D4E; --coral-soft:#FBE9E6;
-  --green:#3E8E5A; --green-soft:#E6F2EA;
-  --radius:14px; --shadow:0 1px 3px rgba(27,43,51,.08), 0 4px 14px rgba(27,43,51,.05);
-}
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-html,body{margin:0; padding:0}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans",sans-serif;
-  background:var(--bg); color:var(--ink); font-size:15.5px; line-height:1.5;
-  padding-bottom:calc(76px + env(safe-area-inset-bottom));
-}
-h1,h2,h3{margin:0; line-height:1.25}
-button{font:inherit; border:none; background:none; color:inherit; cursor:pointer}
-input,select,textarea{
-  font:inherit; color:var(--ink); background:var(--bg);
-  border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; width:100%;
-}
-input:focus,select:focus,textarea:focus{outline:none; border-color:var(--teal)}
-label{display:block; font-size:12.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); margin:14px 0 5px}
-
-/* Header */
-header{
-  position:sticky; top:0; z-index:20; background:var(--teal); color:#fff;
-  padding:calc(12px + env(safe-area-inset-top)) 18px 12px; display:flex; align-items:center; justify-content:space-between;
-}
-header .brand{font-weight:800; font-size:19px; letter-spacing:.02em}
-header .brand span{color:#BFE3DC; font-weight:500}
-header .date{font-size:12.5px; opacity:.85}
-header .gear{font-size:20px; padding:6px; border-radius:8px}
-header .gear:active{background:rgba(255,255,255,.15)}
-
-main{padding:16px 16px 8px; max-width:640px; margin:0 auto}
-.view{display:none}
-.view.active{display:block; animation:fade .18s ease}
-@keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
-
-/* Cards & generic */
-.card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:12px}
-.section-title{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin:20px 0 10px}
-.section-title:first-child{margin-top:4px}
-.muted{color:var(--ink-soft); font-size:13.5px}
-.empty{color:var(--ink-soft); text-align:center; padding:28px 12px; font-size:14px}
-.pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:99px; letter-spacing:.03em}
-.pill.overdue{background:var(--coral-soft); color:var(--coral)}
-.pill.soon{background:var(--amber-soft); color:#9C7320}
-.pill.ok{background:var(--teal-soft); color:var(--teal-deep)}
-.pill.done{background:var(--green-soft); color:var(--green)}
-.btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  background:var(--teal); color:#fff; font-weight:700; border-radius:12px; padding:12px 18px; width:100%;
-}
-.btn:active{background:var(--teal-deep)}
-.btn.ghost{background:var(--teal-soft); color:var(--teal-deep)}
-.btn.danger{background:var(--coral-soft); color:var(--coral)}
-.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-
-/* Stats strip */
-.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:6px}
-.stat{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 8px; text-align:center}
-.stat b{display:block; font-size:24px; font-weight:800; line-height:1.1}
-.stat span{font-size:11.5px; color:var(--ink-soft); font-weight:600; letter-spacing:.03em}
-.stat.alert b{color:var(--coral)}
-.stat.warn b{color:#9C7320}
-
-/* Case cards */
-.case{display:block; text-align:left; width:100%; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:13px 15px; margin-bottom:11px; border-left:4px solid var(--line)}
-.case.overdue{border-left-color:var(--coral)}
-.case.soon{border-left-color:var(--amber)}
-.case.active{border-left-color:var(--teal)}
-.case.done{border-left-color:var(--green)}
-.case .top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
-.case .name{font-weight:700; font-size:16px}
-.case .meta{font-size:13px; color:var(--ink-soft); margin-top:2px}
-.case .meta .shade{
-  display:inline-block; font-size:11px; font-weight:800; color:#6B5222;
-  background:linear-gradient(180deg,#FBF6E8,#EFDFB8); border:1px solid #E2CF9C;
-  border-radius:4px 4px 7px 7px; padding:1px 7px; margin-left:4px;
-}
-.steps{display:flex; gap:4px; margin-top:9px}
-.steps i{flex:1; height:5px; border-radius:3px; background:var(--line)}
-.steps i.on{background:var(--teal)}
-.steps i.remake{background:var(--coral)}
-.case .status-line{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:5px}
-
-/* Filter chips */
-.chips{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; scrollbar-width:none}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap');
+:root{--ink:#16283E;--paper:#F5F6F4;--card:#fff;--line:#E2E6EA;--mut:#6B7683;--ok:#1E7B4F;--warn:#B7791F;--bad:#B3382C}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--paper);color:var(--ink);overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100dvh}
+header{background:var(--ink);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 8px}
+header h1{font-size:16px;font-weight:700}
+header .sub{font-size:11px;opacity:.75;margin-top:1px}
+.progress{height:5px;background:rgba(255,255,255,.18);border-radius:3px;margin-top:8px;overflow:hidden}
+.progress i{display:block;height:100%;background:#4FC08D;border-radius:3px;transition:width .4s}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line);scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{white-space:nowrap; font-size:13px; font-weight:600; padding:7px 14px; border-radius:99px; background:var(--card); color:var(--ink-soft); box-shadow:var(--shadow)}
-.chip.sel{background:var(--ink); color:#fff}
-
-/* Quota */
-.quota-item{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:13px 15px; margin-bottom:11px}
-.quota-item .top{display:flex; justify-content:space-between; align-items:center; gap:10px}
-.quota-item .qname{font-weight:700}
-.quota-item .count{font-variant-numeric:tabular-nums; font-weight:800; font-size:15px}
-.quota-item .count small{color:var(--ink-soft); font-weight:600}
-.qbar{display:flex; gap:3px; margin-top:10px}
-.qbar i{flex:1; height:9px; border-radius:3px 3px 5px 5px; background:var(--line)}
-.qbar i.f{background:linear-gradient(180deg,#17918F,#0A5C5B)}
-.qbar i.f.last{background:linear-gradient(180deg,#E5B95C,#C08F2C)}
-.qctrl{display:flex; gap:8px; margin-top:11px}
-.qctrl button{flex:1; font-weight:800; font-size:17px; border-radius:10px; padding:7px 0; background:var(--bg); border:1.5px solid var(--line)}
-.qctrl button:active{background:var(--teal-soft); border-color:var(--teal)}
-.qctrl .edit{font-size:13px; font-weight:600; color:var(--ink-soft)}
-
-/* Guide accordion */
-details.guide{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:11px; overflow:hidden}
-details.guide summary{
-  list-style:none; display:flex; align-items:center; gap:11px; padding:14px 16px;
-  font-weight:700; cursor:pointer; user-select:none;
-}
-details.guide summary::-webkit-details-marker{display:none}
-details.guide summary .ico{font-size:19px}
-details.guide summary::after{content:"›"; margin-left:auto; font-size:20px; color:var(--ink-soft); transform:rotate(90deg); transition:transform .15s}
-details.guide[open] summary::after{transform:rotate(-90deg)}
-details.guide .body{padding:0 16px 15px; font-size:14.5px}
-details.guide .body h4{margin:13px 0 5px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--teal-deep)}
-details.guide .body ol,details.guide .body ul{margin:5px 0; padding-left:20px}
-details.guide .body li{margin-bottom:4px}
-details.guide .body .tip{background:var(--amber-soft); border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:8px 11px; font-size:13.5px; margin:9px 0}
-details.guide .body .warn{background:var(--coral-soft); border-left:3px solid var(--coral); border-radius:0 8px 8px 0; padding:8px 11px; font-size:13.5px; margin:9px 0}
-
-/* Shade picker */
-.shades{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:4px}
-.shade-tab{
-  font-size:12.5px; font-weight:800; padding:10px 0 8px; text-align:center; color:#5C4A1E;
-  border:1.5px solid #E2CF9C; border-radius:6px 6px 12px 12px; position:relative;
-}
-.shade-tab.sel{outline:2.5px solid var(--teal); outline-offset:1px}
-.shade-tab::before{content:""; position:absolute; top:-4px; left:50%; transform:translateX(-50%); width:16px; height:5px; background:#C9CFD2; border-radius:2px}
-
-/* Bottom sheet */
-.overlay{position:fixed; inset:0; background:rgba(20,32,38,.45); z-index:40; display:none}
-.overlay.show{display:block}
-.sheet{
-  position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--card);
-  border-radius:20px 20px 0 0; padding:10px 18px calc(20px + env(safe-area-inset-bottom));
-  max-height:88vh; overflow-y:auto; transform:translateY(105%); transition:transform .22s ease;
-  max-width:640px; margin:0 auto;
-}
-.sheet.show{transform:none}
-.sheet .grab{width:42px; height:5px; background:var(--line); border-radius:3px; margin:4px auto 12px}
-.sheet h2{font-size:18px; margin-bottom:2px}
-
-/* Bottom nav */
-nav{
-  position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--card);
-  border-top:1px solid var(--line); display:flex;
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
-}
-nav button{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--ink-soft); padding:5px 0; border-radius:10px}
-nav button .ni{font-size:21px; line-height:1}
-nav button.sel{color:var(--teal-deep)}
-nav button.sel .ni{transform:scale(1.08)}
-
-/* FAB */
-.fab{
-  position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:29;
-  width:56px; height:56px; border-radius:18px; background:var(--teal); color:#fff;
-  font-size:28px; font-weight:400; box-shadow:0 6px 18px rgba(14,124,123,.4);
-  display:none; align-items:center; justify-content:center;
-}
-.fab.show{display:flex}
-.fab:active{background:var(--teal-deep)}
-
-/* Toast */
-#toast{
-  position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px);
-  background:var(--ink); color:#fff; font-size:13.5px; font-weight:600; padding:9px 18px;
-  border-radius:99px; opacity:0; transition:.25s; z-index:60; pointer-events:none; white-space:nowrap;
-}
-#toast.show{opacity:1; transform:translateX(-50%)}
-:focus-visible{outline:2.5px solid var(--teal); outline-offset:2px}
-
-/* Map & tour */
-#map{height:44vh; min-height:280px; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; z-index:1; background:var(--line)}
-.place-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
-.place-actions a{flex:1; min-width:70px; text-align:center; font-size:12.5px; font-weight:700; padding:8px 4px; border-radius:10px; text-decoration:none}
-.act-wa{background:#E7F6EC; color:#128C4A}
-.act-call{background:var(--teal-soft); color:var(--teal-deep)}
-.act-dir{background:var(--amber-soft); color:#9C7320}
-.stopnum{background:var(--teal); color:#fff; font-weight:800; font-size:12px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.tour-stop{display:flex; gap:10px; padding:7px 0; border-top:1px dashed var(--line); font-size:14px; cursor:pointer}
-.tour-stop .n{color:var(--teal-deep); font-weight:800}
-.map-pop button{display:block; width:100%; font-weight:700; font-size:13px; padding:7px 10px; border-radius:8px; background:var(--teal-soft); color:var(--teal-deep); margin-top:6px}
-.btn.wa{background:#128C4A}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12.5px;font-weight:500;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap}
+.chip.on{color:#fff;border-color:transparent;background:var(--ink)}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.daytip{margin:10px 12px 0;padding:10px 12px;border-radius:10px;color:#fff;font-size:12.5px;line-height:1.7}
+.daytip b{font-size:13.5px;display:block;margin-bottom:2px}
+.route{position:relative;padding:8px 12px 96px}
+.route.ribbon::before{content:"";position:absolute;top:20px;bottom:110px;right:31px;width:4px;background:var(--rc,#1D6FB8);border-radius:2px;opacity:.25}
+.stop{position:relative;display:flex;gap:10px;margin:8px 0}
+.pin{flex:0 0 42px;display:flex;flex-direction:column;align-items:center;z-index:1}
+.pin b{width:30px;height:30px;border-radius:50%;background:var(--rc,#1D6FB8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.stop.done .pin b{background:var(--ok)}
+.card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stop.done .card{opacity:.65}
+.nm{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.badge{font-size:10px;font-weight:500;color:#fff;border-radius:8px;padding:1.5px 7px;white-space:nowrap}
+.lead{width:9px;height:9px;border-radius:50%;display:inline-block;margin-left:4px;vertical-align:1px}
+.meta{font-size:11.5px;color:var(--mut);margin-top:3px;line-height:1.6}
+.sun{color:var(--warn);font-weight:700}.star{color:#B7791F;font-weight:700}
+.debtline{font-size:11.5px;font-weight:700;color:var(--bad);margin-top:3px}
+.fuline{font-size:11.5px;font-weight:700;color:#8a5cb8;margin-top:2px}
+.acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.acts a,.acts button{flex:1 1 auto;min-width:56px;border:none;border-radius:9px;padding:8px 4px;font-size:11.5px;font-weight:700;font-family:inherit;text-align:center;text-decoration:none;cursor:pointer;color:var(--ink)}
+.a-call{background:#EAF1F8;color:#1D6FB8}.a-wa{background:#E7F6EC;color:#128C4B}
+.a-map{background:#FDF1E4;color:#B05B12}.a-done{background:#EFEFEF;color:#444}
+.a-ord{background:#F0E9F8;color:#6b3fa0}.a-fu{background:#FBEAF2;color:#B0397A}.a-tpl{background:#E8F4F6;color:#0D7D8C}
+.stop.done .a-done{background:var(--ok);color:#fff}
+.a-call.dis,.a-wa.dis{opacity:.35;pointer-events:none}
+.extra{margin-top:8px;display:none}
+.stop.open .extra{display:block}
+.extra input,.extra textarea,.extra select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:inherit;font-size:12.5px;margin-top:6px;background:#FBFCFC}
+.extra label{font-size:11px;color:var(--mut)}
+.savemark{font-size:11px;color:var(--ok);height:14px}
+.mapwrap{position:relative;flex:1}#map{position:absolute;inset:0}
+.leaflet-popup-content{font-family:'IBM Plex Sans Arabic',sans-serif;direction:rtl;text-align:right;margin:10px 12px;font-size:13px}
+.numpin{background:transparent;border:none}
+.numpin div{width:26px;height:26px;border-radius:50% 50% 50% 4px;color:#fff;font-weight:700;font-size:11.5px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);border:2px solid #fff}
+.search{padding:10px 12px 0}
+.search input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff}
+.filters{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap}
+.filters .chip{font-size:11.5px;padding:4px 10px}
+.count{padding:0 14px;font-size:11.5px;color:var(--mut)}
+.pad{padding:12px 12px 96px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.sec h3{font-size:13.5px;margin-bottom:6px}
+.seg{display:flex;background:#EDEFF1;border-radius:10px;padding:3px;margin:10px 12px 0}
+.seg button{flex:1;border:none;border-radius:8px;padding:8px;font-family:inherit;font-size:12.5px;font-weight:700;background:none;color:var(--mut);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.row:last-child{border-bottom:none}
+.row .l{min-width:0}.row .l b{display:block;font-size:13px}
+.row .l span{font-size:11px;color:var(--mut)}
+.amt{font-weight:700;white-space:nowrap}.amt.red{color:var(--bad)}.amt.grn{color:var(--ok)}
+.mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--ink)}
+.fab{position:fixed;bottom:76px;right:16px;background:var(--ink);color:#fff;border:none;border-radius:26px;padding:13px 20px;font-family:inherit;font-size:14px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.3);cursor:pointer;z-index:500}
+.overlay{position:fixed;inset:0;background:rgba(10,20,35,.5);z-index:1000;display:none;align-items:flex-end}
+.overlay.show{display:flex}
+.sheet{background:var(--paper);width:100%;max-height:92dvh;border-radius:16px 16px 0 0;display:flex;flex-direction:column}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px}
+.sheet .hd b{font-size:15px}
+.sheet .hd button{border:none;background:#EDEFF1;border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer}
+.sheet .bd{overflow-y:auto;padding:0 14px 20px}
+.sheet input,.sheet select,.sheet textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px;font-family:inherit;font-size:13px;margin-top:6px;background:#fff}
+.sheet label{font-size:11.5px;color:var(--mut);display:block;margin-top:9px}
+.oline{display:flex;gap:6px;margin-top:6px;align-items:center}
+.oline select{flex:2.4;margin-top:0}.oline input{margin-top:0}
+.oline .q{flex:.9}.oline .p{flex:1.3}
+.oline button{border:none;background:#F6E3E1;color:var(--bad);border-radius:8px;width:34px;height:34px;font-weight:700;cursor:pointer;flex:0 0 34px}
+.total{display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding:10px 2px 0}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12.5px}
+.bar .tk{flex:1;height:8px;background:#EDEFF1;border-radius:4px;overflow:hidden}
+.bar .tk i{display:block;height:100%;border-radius:4px}
+.bar .lb{flex:0 0 128px}.bar .vl{flex:0 0 46px;text-align:left;color:var(--mut);font-size:11px}
+.bignum{font-size:34px;font-weight:700;line-height:1}
+.btnrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btnrow button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;min-width:90px}
+nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:none;background:none;font-family:inherit;padding:8px 0 6px;font-size:10.5px;color:var(--mut);cursor:pointer;font-weight:500;position:relative}
+nav button .ic{display:block;font-size:18px;margin-bottom:1px}
+nav button.on{color:var(--ink);font-weight:700}
+nav .dot{position:absolute;top:5px;right:calc(50% - 15px);background:var(--bad);color:#fff;font-size:9px;border-radius:8px;padding:0 4px;min-width:14px}
+.hide{display:none!important}
+.toast{position:fixed;bottom:78px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;font-size:12.5px;padding:9px 16px;border-radius:20px;opacity:0;transition:.3s;pointer-events:none;z-index:3000}
+.toast.show{opacity:1}
+.empty{color:var(--mut);font-size:12.5px;text-align:center;padding:18px 0}
 </style>
 </head>
 <body>
+<div id="app">
+ <header>
+  <h1>مندوب الأسنان — الكرخ</h1>
+  <div class="sub" id="subline"></div>
+  <div class="progress"><i id="pbar" style="width:0%"></i></div>
+ </header>
+ <div class="chips" id="daychips"></div>
 
-<header>
-  <div>
-    <div class="brand">Dent<span>Lab</span></div>
-    <div class="date" id="hdrDate"></div>
-  </div>
-  <button class="gear" id="btnSettings" aria-label="Settings and backup">⚙︎</button>
-</header>
-
-<main>
-  <!-- TODAY -->
-  <section class="view" id="view-today"></section>
-  <!-- CASES -->
-  <section class="view" id="view-cases">
-    <div class="chips" id="caseFilters"></div>
-    <div id="caseList"></div>
-  </section>
-  <!-- QUOTA -->
-  <section class="view" id="view-quota">
-    <div id="quotaList"></div>
-    <button class="btn ghost" id="btnAddQuota">+ Add requirement</button>
-  </section>
-  <!-- MAP -->
-  <section class="view" id="view-map">
-    <div id="map"></div>
-    <div class="chips" id="mapTabs"></div>
-    <div id="mapPanel"></div>
-  </section>
-  <!-- GUIDE -->
-  <section class="view" id="view-guide"></section>
-</main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-
-<button class="fab" id="fab" aria-label="Add case">+</button>
-
-<nav>
-  <button data-tab="today" class="sel"><span class="ni">☀︎</span>Today</button>
-  <button data-tab="cases"><span class="ni">🦷</span>Cases</button>
-  <button data-tab="quota"><span class="ni">▤</span>Quota</button>
-  <button data-tab="map"><span class="ni">🗺</span>Map</button>
-  <button data-tab="guide"><span class="ni">✎</span>Guide</button>
-</nav>
-
-<div class="overlay" id="overlay"></div>
-<div class="sheet" id="sheet"></div>
-<div id="toast" role="status"></div>
+ <main id="viewDay"><div id="daytip" class="daytip"></div><div class="route ribbon" id="routeList"></div></main>
+ <main id="viewMap" class="hide"><div class="mapwrap"><div id="map"></div></div></main>
+ <main id="viewAll" class="hide">
+   <div class="search"><input id="q" type="search" placeholder="ابحث بالاسم أو الشارع أو المنطقة…"></div>
+   <div class="filters" id="fchips"></div>
+   <div class="count" id="qcount"></div>
+   <div class="route" id="allList" style="--rc:#8896A6"></div>
+ </main>
+ <main id="viewSales" class="hide">
+   <div class="seg"><button class="on" onclick="salesTab('orders',this)">🧾 الطلبيات</button><button onclick="salesTab('products',this)">📦 المنتجات والأسعار</button></div>
+   <div class="pad" id="salesBox"></div>
+ </main>
+ <main id="viewMoney" class="hide"><div class="pad" id="moneyBox"></div></main>
+ <main id="viewStats" class="hide"><div class="pad" id="statsBox"></div></main>
+ <nav>
+  <button data-v="Day" class="on"><span class="ic">🧭</span>الجولة</button>
+  <button data-v="Map"><span class="ic">🗺️</span>الخريطة</button>
+  <button data-v="All"><span class="ic">🔍</span>الكل</button>
+  <button data-v="Sales"><span class="ic">🛒</span>المبيعات</button>
+  <button data-v="Money" id="tabMoney"><span class="ic">💰</span>الذمم<span class="dot hide" id="fudot"></span></button>
+  <button data-v="Stats"><span class="ic">📊</span>تقدّمي</button>
+ </nav>
+</div>
+<button class="fab hide" id="fabOrder" onclick="openOrderSheet()">＋ طلبية</button>
+<div class="overlay" id="ov"><div class="sheet"><div class="hd"><b id="ovTitle"></b><button onclick="closeOv()">✕</button></div><div class="bd" id="ovBody"></div></div></div>
+<div class="toast" id="toast"></div>
 
 <script>
-"use strict";
-/* ---------------- State ---------------- */
-const LS_KEY = "dentlab.v1";
-const CASE_TYPES = ["Crown — Zirconia","Crown — PFM","Crown — E-max","Bridge","Post & Core","Veneer","Implant Crown","Complete Denture","RPD — Acrylic","RPD — Cr-Co","Night Guard","Inlay / Onlay","Other"];
-const STATUSES = [
-  {id:"prep",    label:"Preparation"},
-  {id:"imp",     label:"Impression taken"},
-  {id:"sent",    label:"Sent to lab"},
-  {id:"tryin",   label:"Try-in / framework"},
-  {id:"delivered",label:"Delivered / cemented"},
-  {id:"remake",  label:"Remake needed"}
-];
-const SHADES = ["A1","A2","A3","A3.5","A4","B1","B2","B3","B4","C1","C2","C3","C4","D2","D3","D4"];
-const SHADE_COLORS = {A1:"#F3EBDC",A2:"#EFE3CB","A3":"#EBDBB9","A3.5":"#E4CFA3",A4:"#DBC28E",B1:"#F4EEDA",B2:"#EFE6C4",B3:"#E7D8A6",B4:"#DFCB8F",C1:"#E8E1D0",C2:"#DFD5BC",C3:"#D5C8A7",C4:"#CBBB93",D2:"#E7DECE",D3:"#DDD2BC",D4:"#D2C5A9"};
+const DATA = [{"id":"1-1","day":"1","ord":1,"d":"المنصور","n":"Alburak Dental Clinic","st":"شارع أبو جعفر المنصور","ph":"","hr":"Open 24h · Fri off","m":true,"r":0,"rc":0,"note":"","lat":33.3321455,"lng":44.3461048,"g":"https://www.google.com/maps/search/?api=1&query=33.3321455,44.3461048&query_place_id=ChIJ59tiAU5_VxUR4k_ujB05A-g","gov":false},{"id":"1-2","day":"1","ord":2,"d":"المنصور","n":"عيادة الاميرات لطب وتجميل الاسنان","st":"شارع ابو جعفر المنصور – قرب مصرف الرافدين","ph":"0780 008 3467","hr":"—","m":false,"r":0,"rc":0,"note":"الموقع تقريبي · الرقم من انستغرام @alamerat.clinic","lat":33.332,"lng":44.3455,"g":"https://www.google.com/maps/search/?api=1&query=33.332,44.3455","gov":false},{"id":"1-3","day":"1","ord":3,"d":"المنصور","n":"عيادة د. زياد حازم الربيعي (جراحة وتجميل)","st":"المنصور","ph":"0773 018 8777","hr":"4–10 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3256189,"lng":44.3456998,"g":"https://www.google.com/maps/search/?api=1&query=33.3256189,44.3456998&query_place_id=ChIJ84NovvN-VxURyd4SIhIkgpk","gov":false},{"id":"1-4","day":"1","ord":4,"d":"المنصور","n":"Leo Dental Clinic ليو","st":"شارع أبو جعفر المنصور","ph":"0772 811 1446","hr":"3–9 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.324684,"lng":44.3467265,"g":"https://www.google.com/maps/search/?api=1&query=33.324684,44.3467265&query_place_id=ChIJpQoXzzN_VxURuusWpj_zClY","gov":false},{"id":"1-5","day":"1","ord":5,"d":"المنصور","n":"عيادة النخيل لتجميل وزراعة الأسنان","st":"مقابل مول المنصور – عمارة اللؤلؤة ط6","ph":"0782 280 1870","hr":"4–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3207019,"lng":44.3545284,"g":"https://www.google.com/maps/search/?api=1&query=33.3207019,44.3545284&query_place_id=ChIJYYBu8KR_VxUR-pX_Nl20kxE","gov":false},{"id":"1-6","day":"1","ord":6,"d":"المنصور","n":"Worthy Dental Clinic","st":"المنصور","ph":"0750 060 0759","hr":"11 AM–8 PM · Fri off","m":true,"r":3.7,"rc":0,"note":"","lat":33.3171544,"lng":44.3547064,"g":"https://www.google.com/maps/search/?api=1&query=33.3171544,44.3547064&query_place_id=ChIJh1dxPgt_VxURJsUQNdU_VTw","gov":false},{"id":"1-7","day":"1","ord":7,"d":"المنصور","n":"ALRWAD عيادة الرواد للتقويم","st":"شارع المنصور","ph":"0773 125 5519","hr":"4–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3169466,"lng":44.354618,"g":"https://www.google.com/maps/search/?api=1&query=33.3169466,44.354618&query_place_id=ChIJG_RMf3V_VxUR_LEHfVzggFk","gov":false},{"id":"1-8","day":"1","ord":8,"d":"المنصور","n":"Pure Dental Care عيادة بيور","st":"شارع الأميرات","ph":"0773 774 4999","hr":"Open 24h","m":true,"r":5.0,"rc":0,"note":"","lat":33.3157296,"lng":44.3529425,"g":"https://www.google.com/maps/search/?api=1&query=33.3157296,44.3529425&query_place_id=ChIJp7LWRAB_VxUR6CkQ2-rG-0w","gov":false},{"id":"1-9","day":"1","ord":9,"d":"المنصور","n":"عيادة د. ياسر رياض الخناق","st":"المنصور","ph":"0780 490 3095","hr":"10 AM–10 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3176254,"lng":44.3477089,"g":"https://www.google.com/maps/search/?api=1&query=33.3176254,44.3477089&query_place_id=ChIJKSXYSmF-VxURI01g17MbP8s","gov":false},{"id":"1-10","day":"1","ord":10,"d":"المنصور","n":"Urla Dental Clinic","st":"شارع نادي الصيد","ph":"0773 444 4353","hr":"3–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3161906,"lng":44.3470651,"g":"https://www.google.com/maps/search/?api=1&query=33.3161906,44.3470651&query_place_id=ChIJgaqCYDJ_VxURKtqWYgn62vg","gov":false},{"id":"1-11","day":"1","ord":11,"d":"المنصور","n":"Lovely Look Clinic","st":"شارع المنصور","ph":"0772 390 0600","hr":"3–10 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3171439,"lng":44.3446653,"g":"https://www.google.com/maps/search/?api=1&query=33.3171439,44.3446653&query_place_id=ChIJux0NY59_VxUR6FVSISmFMTs","gov":false},{"id":"1-12","day":"1","ord":12,"d":"المنصور","n":"Midline عيادة مدلاين","st":"شارع مول بابيلون","ph":"0774 442 2828","hr":"2:30–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3183205,"lng":44.3426247,"g":"https://www.google.com/maps/search/?api=1&query=33.3183205,44.3426247&query_place_id=ChIJM3aKYSh_VxURRnFpdo_J__o","gov":false},{"id":"1-13","day":"1","ord":13,"d":"المنصور","n":"Baghdad Smile Clinics عيادات ابتسامة بغداد","st":"شارع المنصور – مقابل صمد بستون","ph":"0782 222 4028","hr":"10 AM–9 PM · Fri off","m":true,"r":3.9,"rc":0,"note":"","lat":33.318111,"lng":44.3420363,"g":"https://www.google.com/maps/search/?api=1&query=33.318111,44.3420363&query_place_id=ChIJG6xJvWB-VxUR8uCeGY4cRIc","gov":false},{"id":"1-14","day":"1","ord":14,"d":"المنصور","n":"سفاير كلنك للتقويم والتجميل","st":"المنصور","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3178417,"lng":44.3403633,"g":"https://www.google.com/maps/search/?api=1&query=33.3178417,44.3403633&query_place_id=ChIJ4xdqIwB_VxURez7ih_VSiTI","gov":false},{"id":"1-15","day":"1","ord":15,"d":"المنصور","n":"4U Dental Clinic","st":"شارع ١٤ رمضان","ph":"0790 177 2543","hr":"3:30–9:30 PM · Fri off","m":false,"r":4.7,"rc":0,"note":"","lat":33.3202941,"lng":44.3379557,"g":"https://www.google.com/maps/search/?api=1&query=33.3202941,44.3379557&query_place_id=ChIJ988F4GN-VxURVZnN0YlzvDI","gov":false},{"id":"1-16","day":"1","ord":16,"d":"المنصور","n":"MK Dental Clinic","st":"شارع ١٤ رمضان","ph":"0771 333 3851","hr":"10:30 AM–10 PM · Fri off","m":true,"r":4.7,"rc":0,"note":"","lat":33.320802,"lng":44.3376163,"g":"https://www.google.com/maps/search/?api=1&query=33.320802,44.3376163&query_place_id=ChIJ2TEckSl_VxURfzKR5PmrTkE","gov":false},{"id":"1-17","day":"1","ord":17,"d":"المنصور","n":"Tooth Land","st":"شارع 14 رمضان","ph":"0784 111 3999","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3213365,"lng":44.3385143,"g":"https://www.google.com/maps/search/?api=1&query=33.3213365,44.3385143&query_place_id=ChIJC9ptIwB_VxURIEm-1ZKTwdQ","gov":false},{"id":"1-18","day":"1","ord":18,"d":"المنصور","n":"عيادة الذروة – فرع المنصور","st":"المنصور","ph":"0785 300 0770","hr":"3 PM–12 AM daily","m":false,"r":4.5,"rc":0,"note":"","lat":33.3238125,"lng":44.3380625,"g":"https://www.google.com/maps/search/?api=1&query=33.3238125,44.3380625&query_place_id=ChIJzZdt5j9_VxURaMSkGZnhQsk","gov":false},{"id":"1-19","day":"1","ord":19,"d":"المنصور","n":"عيادة أوبيتال – فرع المنصور","st":"المنصور","ph":"0774 444 0803","hr":"10 AM–9 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.3232667,"lng":44.3335123,"g":"https://www.google.com/maps/search/?api=1&query=33.3232667,44.3335123&query_place_id=ChIJ_TXbHAB_VxUR3hyjlYR06UQ","gov":false},{"id":"1-20","day":"1","ord":20,"d":"المنصور","n":"Goodental عيادة كودينتل","st":"شارع 14 رمضان – فرع هيل وزعفران","ph":"0773 330 6688","hr":"4–8:30 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.320554,"lng":44.3331317,"g":"https://www.google.com/maps/search/?api=1&query=33.320554,44.3331317&query_place_id=ChIJk2SogUt_VxURVLE10JfrI0s","gov":false},{"id":"1-21","day":"1","ord":21,"d":"المنصور","n":"Ishtar مركز عشتار لطب الأسنان","st":"شارع ١٤ رمضان","ph":"0783 290 2288","hr":"10 AM–9 PM · Fri off","m":true,"r":4.2,"rc":0,"note":"","lat":33.3194584,"lng":44.3365626,"g":"https://www.google.com/maps/search/?api=1&query=33.3194584,44.3365626&query_place_id=ChIJcxPtf2Z_VxURoVMQbQMASWE","gov":false},{"id":"1-22","day":"1","ord":22,"d":"المنصور","n":"مركز الماسة","st":"شارع ١٤ رمضان","ph":"0773 731 3132","hr":"11 AM–8 PM daily","m":true,"r":4.0,"rc":0,"note":"","lat":33.3191135,"lng":44.3384484,"g":"https://www.google.com/maps/search/?api=1&query=33.3191135,44.3384484&query_place_id=ChIJh__7FRN-VxURDhU0SeUUjsw","gov":false},{"id":"1-23","day":"1","ord":23,"d":"المنصور","n":"عيادة حشوة لطب وتجميل الأسنان","st":"تقاطع ١٤ رمضان","ph":"0776 835 2567","hr":"3–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3190386,"lng":44.3384962,"g":"https://www.google.com/maps/search/?api=1&query=33.3190386,44.3384962&query_place_id=ChIJc3ahaQB_VxURoqDaXw8mELg","gov":false},{"id":"1-24","day":"1","ord":24,"d":"المنصور","n":"Specialists Dental Clinic","st":"شارع ١٤ رمضان","ph":"0773 039 3529","hr":"10 AM–10 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3189904,"lng":44.3384197,"g":"https://www.google.com/maps/search/?api=1&query=33.3189904,44.3384197&query_place_id=ChIJze-pdAB_VxURQ7wlOdahqms","gov":false},{"id":"1-25","day":"1","ord":25,"d":"المنصور","n":"عيادة د. وليد خليل اسماعيل","st":"شارع ١٤ رمضان","ph":"","hr":"—","m":false,"r":3.0,"rc":0,"note":"","lat":33.3183336,"lng":44.3381528,"g":"https://www.google.com/maps/search/?api=1&query=33.3183336,44.3381528&query_place_id=ChIJ79nmZAB_VxURgxKmTXhYSqk","gov":false},{"id":"1-26","day":"1","ord":26,"d":"المنصور","n":"Ayad Dental Care عيادة اياد","st":"شارع 14 رمضان","ph":"0772 900 9933","hr":"12–8 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3127744,"lng":44.3380167,"g":"https://www.google.com/maps/search/?api=1&query=33.3127744,44.3380167&query_place_id=ChIJHVDLFQB_VxURFEwbTDz3Wfw","gov":false},{"id":"1-27","day":"1","ord":27,"d":"المنصور","n":"Royal Dental Center المركز الملكي","st":"شارع 14 رمضان","ph":"0782 157 0922","hr":"10 AM–9 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3124973,"lng":44.3380935,"g":"https://www.google.com/maps/search/?api=1&query=33.3124973,44.3380935&query_place_id=ChIJhUdPtmh-VxURIBJCrrwLysg","gov":false},{"id":"1-28","day":"1","ord":28,"d":"المنصور","n":"Clear كلير للأسنان","st":"شارع ١٤ رمضان (الجنوبي)","ph":"0774 444 4992","hr":"10 AM–9 PM daily","m":true,"r":4.8,"rc":0,"note":"","lat":33.3080497,"lng":44.3398964,"g":"https://www.google.com/maps/search/?api=1&query=33.3080497,44.3398964&query_place_id=ChIJmyNCOwB_VxURZ-xHJWNhO48","gov":false},{"id":"1-29","day":"1","ord":29,"d":"المنصور","n":"Sila Clinic سيلا كلينك","st":"١٤ رمضان – العمارة السوداء ط6","ph":"0774 446 4445","hr":"9 AM–9 PM daily","m":true,"r":3.4,"rc":0,"note":"","lat":33.30586,"lng":44.3405521,"g":"https://www.google.com/maps/search/?api=1&query=33.30586,44.3405521&query_place_id=ChIJX2FkYjh_VxURwCt8BSKwRbw","gov":false},{"id":"1-30","day":"1","ord":30,"d":"المنصور","n":"Aline ألاين لطب الأسنان","st":"شارع 14 رمضان (الجنوبي)","ph":"0777 200 1002","hr":"10 AM–8 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.305539,"lng":44.3402441,"g":"https://www.google.com/maps/search/?api=1&query=33.305539,44.3402441&query_place_id=ChIJga6IjLN_VxURaV1tR6n-h64","gov":false},{"id":"1-31","day":"1","ord":31,"d":"المنصور","n":"Teeth Master عيادات سيد الأسنان","st":"المنصور (الجنوب) / الداودي","ph":"0784 200 0038","hr":"ساعات متغيرة","m":false,"r":4.3,"rc":0,"note":"","lat":33.3045315,"lng":44.3424397,"g":"https://www.google.com/maps/search/?api=1&query=33.3045315,44.3424397&query_place_id=ChIJ-8jHtqd_VxURrnsBNC4Ck7E","gov":false},{"id":"1-32","day":"1","ord":32,"d":"المنصور","n":"Uniclinics عيادات المتحدة","st":"شارع الاميرات – بناية اعمال ط3","ph":"0780 041 1114","hr":"3–8 PM · Fri off","m":false,"r":4.6,"rc":0,"note":"","lat":33.3048055,"lng":44.3507124,"g":"https://www.google.com/maps/search/?api=1&query=33.3048055,44.3507124&query_place_id=ChIJs-qeyWJ_VxURtO31JHDzmv0","gov":false},{"id":"1-33","day":"1","ord":33,"d":"المنصور","n":"مركز المأمون التخصصي لطب الأسنان (حكومي)","st":"المأمون","ph":"0790 285 8498","hr":"8 AM–2 PM (صباحي)","m":true,"r":4.2,"rc":0,"note":"مركز حكومي","lat":33.2986515,"lng":44.3315838,"g":"https://www.google.com/maps/search/?api=1&query=33.2986515,44.3315838&query_place_id=ChIJS5mVZQV-VxURlxju-nBrv-E","gov":true},{"id":"2-1","day":"2","ord":1,"d":"الحارثية","n":"Amwaj Clinic عيادة أمواج","st":"الحارثية","ph":"0788 973 2521","hr":"3–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3134135,"lng":44.3653267,"g":"https://www.google.com/maps/search/?api=1&query=33.3134135,44.3653267&query_place_id=ChIJRfkcNwB_VxURXuoj6zMJ9V4","gov":false},{"id":"2-2","day":"2","ord":2,"d":"الحارثية","n":"عيادة د. نادين القيسي","st":"شارع الكندي","ph":"0771 322 1111","hr":"10 AM–8 PM · Fri off","m":true,"r":4.0,"rc":0,"note":"","lat":33.3120504,"lng":44.3660035,"g":"https://www.google.com/maps/search/?api=1&query=33.3120504,44.3660035&query_place_id=ChIJRXkdBGd_VxURdsyyJ-lI9Hk","gov":false},{"id":"2-3","day":"2","ord":3,"d":"الحارثية","n":"المركز الطبي الرازي (مجمع يضم عيادة أسنان)","st":"شارع الكندي – قرب بغداد مول","ph":"","hr":"2–9 PM","m":false,"r":3.7,"rc":0,"note":"مجمع طبي","lat":33.3115013,"lng":44.3661523,"g":"https://www.google.com/maps/search/?api=1&query=33.3115013,44.3661523&query_place_id=ChIJRSUhswB_VxURjf7Z57fEZs0","gov":false},{"id":"2-4","day":"2","ord":4,"d":"الحارثية","n":"عيادة د. علي محمد","st":"شارع الكندي","ph":"0790 222 8119","hr":"—","m":false,"r":3.7,"rc":0,"note":"","lat":33.3112342,"lng":44.366347,"g":"https://www.google.com/maps/search/?api=1&query=33.3112342,44.366347&query_place_id=ChIJZd9iBAB_VxURb_iWMA_RONY","gov":false},{"id":"2-5","day":"2","ord":5,"d":"الحارثية","n":"مركز الحويزي لطب وتقويم الأسنان","st":"شارع الكندي – مقابل بغداد مول","ph":"0790 146 0050","hr":"10 AM–7 PM · Fri off","m":true,"r":4.0,"rc":0,"note":"","lat":33.3111482,"lng":44.3660098,"g":"https://www.google.com/maps/search/?api=1&query=33.3111482,44.3660098&query_place_id=ChIJGUQgrAB_VxUR5GGJztrKK-s","gov":false},{"id":"2-6","day":"2","ord":6,"d":"الحارثية","n":"Al Ghaid عيادة الغيد لطب الأسنان","st":"شارع الكندي","ph":"0777 687 4059","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3104899,"lng":44.3660858,"g":"https://www.google.com/maps/search/?api=1&query=33.3104899,44.3660858&query_place_id=ChIJl0mMWYN_VxUR80GRcGyl3RE","gov":false},{"id":"2-7","day":"2","ord":7,"d":"الحارثية","n":"عيادة قدري تيم (زراعة وتجميل)","st":"الحارثية","ph":"0781 100 9977","hr":"2:30–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.310934,"lng":44.3640191,"g":"https://www.google.com/maps/search/?api=1&query=33.310934,44.3640191&query_place_id=ChIJ53yAkot_VxURJoyMnqUF5yc","gov":false},{"id":"2-8","day":"2","ord":8,"d":"الحارثية","n":"عيادة فوي لطب وزراعة الاسنان","st":"مقابل معرض بغداد","ph":"0775 555 3282","hr":"2–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3100388,"lng":44.3631409,"g":"https://www.google.com/maps/search/?api=1&query=33.3100388,44.3631409&query_place_id=ChIJFyqjk2l_VxURV1LdnCbTeMw","gov":false},{"id":"2-9","day":"2","ord":9,"d":"الحارثية","n":"True Dent Clinic عيادة ترودنت","st":"شارع الكندي","ph":"0773 150 0033","hr":"3–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3104865,"lng":44.3642304,"g":"https://www.google.com/maps/search/?api=1&query=33.3104865,44.3642304&query_place_id=ChIJfZNb1E1_VxURDp2Wn9PVFj4","gov":false},{"id":"2-10","day":"2","ord":10,"d":"الحارثية","n":"عيادة الكندي التخصصية للزراعة والتقويم","st":"شارع الكندي – عمارة الياقوت","ph":"0773 300 3002","hr":"9 AM–9 PM · Fri off","m":true,"r":3.6,"rc":0,"note":"","lat":33.309987,"lng":44.3653333,"g":"https://www.google.com/maps/search/?api=1&query=33.309987,44.3653333&query_place_id=ChIJ17rQF6p_VxURgv1lGlmRntw","gov":false},{"id":"2-11","day":"2","ord":11,"d":"الحارثية","n":"مركز الحياة التخصصي للزراعة والتقويم","st":"شارع الكندي","ph":"0770 254 5404","hr":"3–9 PM · Fri off","m":false,"r":4.4,"rc":0,"note":"","lat":33.3097613,"lng":44.3652568,"g":"https://www.google.com/maps/search/?api=1&query=33.3097613,44.3652568&query_place_id=ChIJCUnBPqp_VxUR9VJX7gxeCGA","gov":false},{"id":"2-12","day":"2","ord":12,"d":"الحارثية","n":"عيادة الهمام Alhumam (زراعة وتجميل)","st":"شارع الكندي","ph":"0782 303 0333","hr":"1–8 PM · Fri off","m":true,"r":3.0,"rc":0,"note":"","lat":33.3093957,"lng":44.3657263,"g":"https://www.google.com/maps/search/?api=1&query=33.3093957,44.3657263&query_place_id=ChIJP8Hu0wN_VxURPJejs0W4XQY","gov":false},{"id":"2-13","day":"2","ord":13,"d":"الحارثية","n":"Candy Clinic كاندي","st":"شارع الكندي – مقابل ستي سنتر","ph":"0772 340 0300","hr":"1–10 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.309378,"lng":44.3657823,"g":"https://www.google.com/maps/search/?api=1&query=33.309378,44.3657823&query_place_id=ChIJl2Ll7_d_VxURQz8u4eHOG2c","gov":false},{"id":"2-14","day":"2","ord":14,"d":"الحارثية","n":"عيادة الحارثية التخصصية لطب الأسنان","st":"شارع الكندي","ph":"0782 333 3525","hr":"10 AM–9 PM daily","m":true,"r":4.6,"rc":0,"note":"","lat":33.3089768,"lng":44.3664168,"g":"https://www.google.com/maps/search/?api=1&query=33.3089768,44.3664168&query_place_id=ChIJ_dvt5XB_VxURHfjny8hH8hA","gov":false},{"id":"2-15","day":"2","ord":15,"d":"الحارثية","n":"Dental Home عيادة هوم للأسنان","st":"شارع الكندي","ph":"0773 333 8904","hr":"Open 24h","m":true,"r":4.9,"rc":0,"note":"","lat":33.3082561,"lng":44.3665571,"g":"https://www.google.com/maps/search/?api=1&query=33.3082561,44.3665571&query_place_id=ChIJwc9tVZh_VxUR7Nl5-QYt2_c","gov":false},{"id":"2-16","day":"2","ord":16,"d":"الحارثية","n":"عيادة د. سرمد صباح (جراحة فم وزراعة)","st":"شارع الكندي","ph":"0772 727 7577","hr":"2–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3080874,"lng":44.3660441,"g":"https://www.google.com/maps/search/?api=1&query=33.3080874,44.3660441&query_place_id=ChIJE2ptPQB_VxURI-G7r38Lqyw","gov":false},{"id":"2-17","day":"2","ord":17,"d":"الحارثية","n":"Bloomy مركز بلومي لطب الأسنان","st":"شارع الكندي","ph":"0782 266 9955","hr":"10 AM–9 PM daily","m":true,"r":4.7,"rc":0,"note":"","lat":33.3079162,"lng":44.3655464,"g":"https://www.google.com/maps/search/?api=1&query=33.3079162,44.3655464&query_place_id=ChIJxQkaAIJ_VxURLbB8-vKGyEM","gov":false},{"id":"2-18","day":"2","ord":18,"d":"الحارثية","n":"عيادة اكسبت لطب وتجميل الأسنان","st":"شارع الكندي","ph":"","hr":"4:30–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3076337,"lng":44.3650228,"g":"https://www.google.com/maps/search/?api=1&query=33.3076337,44.3650228&query_place_id=ChIJxXo8LgB_VxUROD7g7O8zFKQ","gov":false},{"id":"2-19","day":"2","ord":19,"d":"الحارثية","n":"Bite Dental Clinic","st":"شارع الكندي","ph":"0771 124 8248","hr":"3–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3075833,"lng":44.3650434,"g":"https://www.google.com/maps/search/?api=1&query=33.3075833,44.3650434&query_place_id=ChIJlfakbnZ_VxUR-iqZ9KmlFqg","gov":false},{"id":"2-20","day":"2","ord":20,"d":"الحارثية","n":"عيادة البروفيسور د. ضياء الدباغ","st":"شارع الكندي","ph":"0781 905 0835","hr":"4–8 PM","m":false,"r":3.7,"rc":0,"note":"","lat":33.3076816,"lng":44.3666127,"g":"https://www.google.com/maps/search/?api=1&query=33.3076816,44.3666127&query_place_id=ChIJfes0e6l_VxUR1oxVlNMVJIQ","gov":false},{"id":"2-21","day":"2","ord":21,"d":"الحارثية","n":"March عيادة مارس للزراعة والتجميل","st":"شارع الكندي","ph":"0780 661 4875","hr":"4–9 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3076753,"lng":44.3666183,"g":"https://www.google.com/maps/search/?api=1&query=33.3076753,44.3666183&query_place_id=ChIJU1E7BgB_VxURY0jCWXcQMyY","gov":false},{"id":"2-22","day":"2","ord":22,"d":"الحارثية","n":"عيادة د. اشرق السيفي","st":"شارع الكندي","ph":"0780 749 1059","hr":"3–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3057672,"lng":44.3665267,"g":"https://www.google.com/maps/search/?api=1&query=33.3057672,44.3665267&query_place_id=ChIJ5yIsrK5_VxURG29LqzA_3vI","gov":false},{"id":"2-23","day":"2","ord":23,"d":"الحارثية","n":"عيادة كيڨو لطب وتجميل الأسنان","st":"شارع الكندي – عمارة الزيتون ط7","ph":"0783 849 9908","hr":"1–9 PM · Fri off","m":true,"r":4.8,"rc":0,"note":"","lat":33.3044486,"lng":44.3672453,"g":"https://www.google.com/maps/search/?api=1&query=33.3044486,44.3672453&query_place_id=ChIJheg0jZN_VxUR95Eji_fzoLE","gov":false},{"id":"2-24","day":"2","ord":24,"d":"الحارثية","n":"عيادة د. ايناس هاشم ابراهيم","st":"شارع الكندي","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3043162,"lng":44.366853,"g":"https://www.google.com/maps/search/?api=1&query=33.3043162,44.366853&query_place_id=ChIJFS6JRQB_VxUR7zInwg-Yeuo","gov":false},{"id":"2-25","day":"2","ord":25,"d":"الحارثية","n":"عيادة العناية بالأسنان (زراعة)","st":"شارع الكندي (الطرف الجنوبي)","ph":"0790 175 4472","hr":"4–9 PM · Fri off","m":false,"r":4.9,"rc":0,"note":"","lat":33.301704,"lng":44.3679029,"g":"https://www.google.com/maps/search/?api=1&query=33.301704,44.3679029&query_place_id=ChIJtaa5pa5_VxURIziEJ1NSyx0","gov":false},{"id":"2-26","day":"2","ord":26,"d":"الحارثية","n":"32 Dental Clinic","st":"الحارثية (شرق الكندي)","ph":"0773 056 5965","hr":"3–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3052688,"lng":44.3732152,"g":"https://www.google.com/maps/search/?api=1&query=33.3052688,44.3732152&query_place_id=ChIJ_____6Z_VxUR0lkFVipCo1M","gov":false},{"id":"2-27","day":"2","ord":27,"d":"القادسية","n":"عيادة تميم لطب الأسنان","st":"القادسية","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2996703,"lng":44.3549287,"g":"https://www.google.com/maps/search/?api=1&query=33.2996703,44.3549287&query_place_id=ChIJOxl1ZgB_VxURHECto3i0Iu0","gov":false},{"id":"2-28","day":"2","ord":28,"d":"القادسية","n":"عيادة د. قتيبة العبيدي","st":"القادسية","ph":"","hr":"Open 24h","m":false,"r":0,"rc":0,"note":"","lat":33.2959111,"lng":44.3557953,"g":"https://www.google.com/maps/search/?api=1&query=33.2959111,44.3557953&query_place_id=ChIJAxdwm51_VxURfkbAcKoDDsg","gov":false},{"id":"2-29","day":"2","ord":29,"d":"القادسية","n":"عيادة د. بشار حكمت","st":"شارع الجنوب","ph":"0773 622 5235","hr":"4–8:30 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.2959278,"lng":44.3525376,"g":"https://www.google.com/maps/search/?api=1&query=33.2959278,44.3525376&query_place_id=ChIJNaKFoal_VxURbixcZEh-SX0","gov":false},{"id":"2-30","day":"2","ord":30,"d":"القادسية","n":"Dr Solaf Al-Saadi عيادة د. سولاف الساعدي","st":"القادسية","ph":"","hr":"—","m":false,"r":4.8,"rc":0,"note":"","lat":33.2998539,"lng":44.3519593,"g":"https://www.google.com/maps/search/?api=1&query=33.2998539,44.3519593&query_place_id=ChIJX3UZ8uF_VxURPHwKA8OSm-Y","gov":false},{"id":"2-31","day":"2","ord":31,"d":"القادسية","n":"The Tower لطب الاسنان","st":"شارع اليرموك","ph":"0773 349 9555","hr":"12–10 PM · Fri off","m":true,"r":4.0,"rc":0,"note":"","lat":33.3022395,"lng":44.3533053,"g":"https://www.google.com/maps/search/?api=1&query=33.3022395,44.3533053&query_place_id=ChIJF5bAEOF_VxURVyjYSDM5S9I","gov":false},{"id":"2-32","day":"2","ord":32,"d":"القادسية","n":"Eagles عيادات النسور","st":"شارع الأردن","ph":"0771 321 1116","hr":"12–9 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.3033126,"lng":44.3531152,"g":"https://www.google.com/maps/search/?api=1&query=33.3033126,44.3531152&query_place_id=ChIJr52UdAB_VxURPsSuB5xDNbA","gov":false},{"id":"2-33","day":"2","ord":33,"d":"القادسية","n":"عيادة د. الاء حسين","st":"القادسية","ph":"0771 945 4587","hr":"2–8 PM daily","m":true,"r":3.0,"rc":0,"note":"","lat":33.3011836,"lng":44.3421874,"g":"https://www.google.com/maps/search/?api=1&query=33.3011836,44.3421874&query_place_id=ChIJFXgkHjp_VxURGhSsjnvwyqc","gov":false},{"id":"2-34","day":"2","ord":34,"d":"القادسية","n":"عيادة د. سلام عزيز (جراحة فم وأسنان)","st":"مدخل القادسية – جهة ساحة قحطان","ph":"0772 776 5602","hr":"صباحي + مسائي","m":true,"r":5.0,"rc":0,"note":"","lat":33.2913904,"lng":44.3516182,"g":"https://www.google.com/maps/search/?api=1&query=33.2913904,44.3516182&query_place_id=ChIJ2fVgGhd_VxUR6BCCmxwdwyY","gov":false},{"id":"2-35","day":"2","ord":35,"d":"القادسية","n":"Bloom Dental Clinic","st":"حي القادسية","ph":"0781 081 1627","hr":"4–9 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2912938,"lng":44.3527982,"g":"https://www.google.com/maps/search/?api=1&query=33.2912938,44.3527982&query_place_id=ChIJZ2zFaKN_VxURizQE41N9WI0","gov":false},{"id":"2-36","day":"2","ord":36,"d":"القادسية","n":"عيادة د. سارة الحبيب","st":"القادسية","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2894804,"lng":44.3505839,"g":"https://www.google.com/maps/search/?api=1&query=33.2894804,44.3505839&query_place_id=ChIJFUV4NQB_VxURdQYK9f81xMk","gov":false},{"id":"2-37","day":"2","ord":37,"d":"القادسية","n":"عيادة د. حيدر الجزائري (لثة)","st":"مقابل جامع أم الطبول","ph":"0773 017 7785","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2881229,"lng":44.3482014,"g":"https://www.google.com/maps/search/?api=1&query=33.2881229,44.3482014&query_place_id=ChIJ3wSPJ59_VxUR-owDJMJ2LsM","gov":false},{"id":"2-38","day":"2","ord":38,"d":"القادسية","n":"Vamos عيادة فاموس","st":"خدمي القادسية – مقابل أم الطبول","ph":"0771 535 3775","hr":"4–10 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2870745,"lng":44.3475109,"g":"https://www.google.com/maps/search/?api=1&query=33.2870745,44.3475109&query_place_id=ChIJkb5Ym_5_VxURomcehFGsAZ4","gov":false},{"id":"2-39","day":"2","ord":39,"d":"القادسية","n":"مركز الأسنان الذكي","st":"القادسية","ph":"0782 188 8889","hr":"10 AM–8 PM daily","m":true,"r":4.7,"rc":0,"note":"","lat":33.2877453,"lng":44.3529935,"g":"https://www.google.com/maps/search/?api=1&query=33.2877453,44.3529935&query_place_id=ChIJJQNOQAB_VxURjDVhEaaUsWk","gov":false},{"id":"2-40","day":"2","ord":40,"d":"القادسية","n":"عيادة د. حيدر صادق الجواد","st":"القادسية","ph":"0790 153 8283","hr":"5–9 PM · Fri off","m":false,"r":4.9,"rc":0,"note":"","lat":33.2867089,"lng":44.3534298,"g":"https://www.google.com/maps/search/?api=1&query=33.2867089,44.3534298&query_place_id=ChIJEW6-0a9_VxURlW7uWWTMoJI","gov":false},{"id":"2-41","day":"2","ord":41,"d":"القادسية","n":"عيادة د. مروة مصعب الراوي","st":"القادسية (الجنوب)","ph":"0787 766 9920","hr":"4–9 PM daily","m":false,"r":0,"rc":0,"note":"","lat":33.2817681,"lng":44.3550706,"g":"https://www.google.com/maps/search/?api=1&query=33.2817681,44.3550706&query_place_id=ChIJWe-YDgB_VxURYJw5rm47Zdg","gov":false},{"id":"3-1","day":"3","ord":1,"d":"حي العامل","n":"عيادة د. حسنين العاكول","st":"شارع ٧ نيسان","ph":"0780 419 9741","hr":"5–9 PM (سبت–أربعاء تقريباً)","m":false,"r":4.8,"rc":0,"note":"","lat":33.2863545,"lng":44.3252958,"g":"https://www.google.com/maps/search/?api=1&query=33.2863545,44.3252958&query_place_id=ChIJj8RyjS_VWRURCtWP_8nr3bo","gov":false},{"id":"3-2","day":"3","ord":2,"d":"حي العامل","n":"عيادة د. أيمن يونس النافع","st":"شارع 30 – فوق صيدلية حي العامل النموذجية","ph":"0774 987 7775","hr":"Open 24h","m":true,"r":5.0,"rc":0,"note":"","lat":33.2809368,"lng":44.3404101,"g":"https://www.google.com/maps/search/?api=1&query=33.2809368,44.3404101&query_place_id=ChIJhQ8gLQDVWRURp2h2YtqLwRE","gov":false},{"id":"3-3","day":"3","ord":3,"d":"حي العامل","n":"عيادة اونيلا لطب وتجميل الأسنان","st":"شارع 30","ph":"0771 295 7968","hr":"4–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2776708,"lng":44.3382105,"g":"https://www.google.com/maps/search/?api=1&query=33.2776708,44.3382105&query_place_id=ChIJ3xn6G5_VWRUR_1-rREUfSw0","gov":false},{"id":"3-4","day":"3","ord":4,"d":"حي العامل","n":"عيادة د. دانية زيد الشمري","st":"شارع 30","ph":"0770 254 3557","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2763299,"lng":44.3381038,"g":"https://www.google.com/maps/search/?api=1&query=33.2763299,44.3381038&query_place_id=ChIJB7uw1-zVWRURQf15s7g89mU","gov":false},{"id":"3-5","day":"3","ord":5,"d":"حي العامل","n":"عيادة د. فرح الخفاجي","st":"شارع 30","ph":"0771 341 9267","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2757912,"lng":44.3378735,"g":"https://www.google.com/maps/search/?api=1&query=33.2757912,44.3378735&query_place_id=ChIJI_3tcgbVWRURz_ULV39dq6Q","gov":false},{"id":"3-6","day":"3","ord":6,"d":"حي العامل","n":"عيادة د. سامر القريشي (زراعة)","st":"شارع 30","ph":"0771 260 0700","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2741138,"lng":44.3371635,"g":"https://www.google.com/maps/search/?api=1&query=33.2741138,44.3371635&query_place_id=ChIJSX5mKPHVWRURdYlDLk44eeA","gov":false},{"id":"3-7","day":"3","ord":7,"d":"حي العامل","n":"عيادة د. محمد بشار","st":"شارع 30","ph":"0770 936 6671","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2716935,"lng":44.3357993,"g":"https://www.google.com/maps/search/?api=1&query=33.2716935,44.3357993&query_place_id=ChIJfeAsxFfVWRURohSl5LSAdDc","gov":false},{"id":"3-8","day":"3","ord":8,"d":"حي العامل","n":"Radiant عيادة ردينت","st":"حي العامل","ph":"","hr":"5–10 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.2719043,"lng":44.3324931,"g":"https://www.google.com/maps/search/?api=1&query=33.2719043,44.3324931&query_place_id=ChIJO3c9OgDVWRURzszD2PgySfM","gov":false},{"id":"3-9","day":"3","ord":9,"d":"حي العامل","n":"مركز صحي حي العامل – طب الأسنان (حكومي)","st":"شارع ٩ نيسان","ph":"","hr":"8:30 AM–2 PM (صباحي)","m":true,"r":2.9,"rc":0,"note":"مركز حكومي","lat":33.2753979,"lng":44.3300707,"g":"https://www.google.com/maps/search/?api=1&query=33.2753979,44.3300707&query_place_id=ChIJyY4liqPVWRURXK_KAT6fumY","gov":true},{"id":"3-10","day":"3","ord":10,"d":"حي العامل","n":"عيادة د. مهيمن محمد","st":"حي العامل","ph":"0772 872 7836","hr":"من 4 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2739412,"lng":44.324396,"g":"https://www.google.com/maps/search/?api=1&query=33.2739412,44.324396&query_place_id=ChIJJSy-YADVWRURdDUe9GGRmuY","gov":false},{"id":"3-11","day":"3","ord":11,"d":"حي العامل","n":"Dr Hassan Khalid Clinic","st":"شارع الشلامجة","ph":"0774 460 6418","hr":"4–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.2690955,"lng":44.325811,"g":"https://www.google.com/maps/search/?api=1&query=33.2690955,44.325811&query_place_id=ChIJ3Y-9Vm_VWRURueuvMg0tbec","gov":false},{"id":"3-12","day":"3","ord":12,"d":"البياع","n":"عيادة زاهد الجلبي Risus","st":"البياع","ph":"0772 124 0400","hr":"4–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2692985,"lng":44.3373814,"g":"https://www.google.com/maps/search/?api=1&query=33.2692985,44.3373814&query_place_id=ChIJwSt6ee3VWRURZEdIdtGPy10","gov":false},{"id":"3-13","day":"3","ord":13,"d":"البياع","n":"عيادة د. ايسر الطائي (جراحة فكين)","st":"شارع 20","ph":"0790 184 6972","hr":"3–11 PM daily","m":false,"r":3.0,"rc":0,"note":"","lat":33.2667186,"lng":44.3407635,"g":"https://www.google.com/maps/search/?api=1&query=33.2667186,44.3407635&query_place_id=ChIJV6IVyj_VWRURPqZ-KH9YeFU","gov":false},{"id":"3-14","day":"3","ord":14,"d":"البياع","n":"Dental Smile عيادة دينتال سمايل","st":"شارع 20","ph":"0772 861 3377","hr":"10:30 AM–9 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.2672067,"lng":44.3414241,"g":"https://www.google.com/maps/search/?api=1&query=33.2672067,44.3414241&query_place_id=ChIJ-TEPAPnVWRURwz5Y-9huDn4","gov":false},{"id":"3-15","day":"3","ord":15,"d":"البياع","n":"عيادة الشجرة لطب الأسنان","st":"البياع","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2689074,"lng":44.3422367,"g":"https://www.google.com/maps/search/?api=1&query=33.2689074,44.3422367&query_place_id=ChIJ3VPTDmbVWRURO4BQ99yCtR0","gov":false},{"id":"3-16","day":"3","ord":16,"d":"البياع","n":"عيادة Wee لطب الأسنان","st":"البياع","ph":"0774 499 9046","hr":"4–8:30 PM daily","m":false,"r":0,"rc":0,"note":"","lat":33.2683148,"lng":44.3449398,"g":"https://www.google.com/maps/search/?api=1&query=33.2683148,44.3449398&query_place_id=ChIJVwLtAQDVWRURc3ocNsTJwH8","gov":false},{"id":"3-17","day":"3","ord":17,"d":"البياع","n":"عيادات ايلول البياع","st":"شارع 20","ph":"0774 011 1104","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.2706726,"lng":44.3437781,"g":"https://www.google.com/maps/search/?api=1&query=33.2706726,44.3437781&query_place_id=ChIJV0CSZQDVWRUR1SAf2tKT8p0","gov":false},{"id":"3-18","day":"3","ord":18,"d":"البياع","n":"عيادة د. وليد الحمداني","st":"شارع 20","ph":"0781 431 3722","hr":"4–8 PM · Fri off","m":false,"r":4.2,"rc":0,"note":"","lat":33.2717708,"lng":44.3439972,"g":"https://www.google.com/maps/search/?api=1&query=33.2717708,44.3439972&query_place_id=ChIJHQaf3G_VWRURKsB8uppB64M","gov":false},{"id":"3-19","day":"3","ord":19,"d":"البياع","n":"عيادة شدو لطب الأسنان","st":"شارع 20","ph":"0780 610 1572","hr":"4–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2719344,"lng":44.3445711,"g":"https://www.google.com/maps/search/?api=1&query=33.2719344,44.3445711&query_place_id=ChIJuUmBEIXVWRURMg_Xg65Tyiw","gov":false},{"id":"3-20","day":"3","ord":20,"d":"البياع","n":"عيادة د. محمد الحسني","st":"شارع 13 – مجاور أسواق الخليج","ph":"0781 075 1120","hr":"4–10 PM · Fri off","m":false,"r":4.8,"rc":0,"note":"","lat":33.2765223,"lng":44.3507337,"g":"https://www.google.com/maps/search/?api=1&query=33.2765223,44.3507337&query_place_id=ChIJAXa5-3B_VxURJx1g1MnnICw","gov":false},{"id":"3-21","day":"3","ord":21,"d":"البياع","n":"عيادة البياع لطب وتجميل الأسنان","st":"شارع 13 – مقابل المركز الصحي","ph":"0774 299 9500","hr":"4–9 PM · Fri off","m":false,"r":3.0,"rc":0,"note":"","lat":33.2769476,"lng":44.350914,"g":"https://www.google.com/maps/search/?api=1&query=33.2769476,44.350914&query_place_id=ChIJJ58MyPLVWRUR6bO6_SLHS1Q","gov":false},{"id":"3-22","day":"3","ord":22,"d":"البياع","n":"مستوصف البياع الطبي (يضم شعبة أسنان)","st":"شارع 13","ph":"","hr":"من 2 PM","m":false,"r":4.2,"rc":0,"note":"مستوصف أهلي","lat":33.2767949,"lng":44.3511701,"g":"https://www.google.com/maps/search/?api=1&query=33.2767949,44.3511701&query_place_id=ChIJd3-gTI_VWRURs7tNmBUaEwU","gov":false},{"id":"3-23","day":"3","ord":23,"d":"السيدية","n":"عيادة لي لطب وتجميل الاسنان","st":"السيدية (الشمالية)","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.2651871,"lng":44.3539642,"g":"https://www.google.com/maps/search/?api=1&query=33.2651871,44.3539642&query_place_id=ChIJnwhmKwDVWRUR5HLVAjC_E8U","gov":false},{"id":"3-24","day":"3","ord":24,"d":"السيدية","n":"عيادة شازاد لطب الاسنان","st":"الشارع التجاري – شارع الامن","ph":"0771 786 8655","hr":"24h daily","m":true,"r":2.5,"rc":0,"note":"","lat":33.2609029,"lng":44.3558485,"g":"https://www.google.com/maps/search/?api=1&query=33.2609029,44.3558485&query_place_id=ChIJv-vmX0fVWRURSLoLInx0HJ0","gov":false},{"id":"3-25","day":"3","ord":25,"d":"السيدية","n":"عيادة د. عشتار سامي","st":"عمارة الضحى – الشارع التجاري","ph":"0780 096 2406","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2600447,"lng":44.3538522,"g":"https://www.google.com/maps/search/?api=1&query=33.2600447,44.3538522&query_place_id=ChIJe59DWdbVWRUR1afgp9oSiQw","gov":false},{"id":"3-26","day":"3","ord":26,"d":"السيدية","n":"عيادة إينانا التخصصية (تجميل وتقويم وزراعة)","st":"الشارع التجاري","ph":"0781 579 9222","hr":"2–10 PM · Fri off","m":false,"r":4.3,"rc":0,"note":"","lat":33.2606249,"lng":44.3533674,"g":"https://www.google.com/maps/search/?api=1&query=33.2606249,44.3533674&query_place_id=ChIJ9cbA7qLVWRURl3q_ukiOis8","gov":false},{"id":"3-27","day":"3","ord":27,"d":"السيدية","n":"Rozna عيادة روزنا","st":"شارع الصناعة – مقابل مدرسة دجلة","ph":"0777 327 7740","hr":"2–9 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2601102,"lng":44.3529335,"g":"https://www.google.com/maps/search/?api=1&query=33.2601102,44.3529335&query_place_id=ChIJX8ySnjfVWRURlpNyo4eYtsQ","gov":false},{"id":"3-28","day":"3","ord":28,"d":"السيدية","n":"عيادة الدكتورة بان","st":"السيدية","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.259663,"lng":44.352318,"g":"https://www.google.com/maps/search/?api=1&query=33.259663,44.352318&query_place_id=ChIJtW3ADG7VWRURs6gvjQK4xa0","gov":false},{"id":"3-29","day":"3","ord":29,"d":"السيدية","n":"عيادة المنارة لطب وجراحة الفم والاسنان","st":"الشارع التجاري","ph":"0781 740 9288","hr":"5:30–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2595932,"lng":44.354573,"g":"https://www.google.com/maps/search/?api=1&query=33.2595932,44.354573&query_place_id=ChIJx6qVa17VWRURhMAe9bCb7R4","gov":false},{"id":"3-30","day":"3","ord":30,"d":"السيدية","n":"عيادة كلاسي للاسنان والتجميل","st":"الشارع التجاري","ph":"","hr":"—","m":false,"r":4.5,"rc":0,"note":"","lat":33.2588852,"lng":44.3543893,"g":"https://www.google.com/maps/search/?api=1&query=33.2588852,44.3543893&query_place_id=ChIJ1fpTVgDVWRUR3JOFaO5lN_Q","gov":false},{"id":"3-31","day":"3","ord":31,"d":"السيدية","n":"مركز الراوية التخصصي لطب الاسنان","st":"الشارع التجاري","ph":"0772 249 9548","hr":"24h daily","m":true,"r":2.7,"rc":0,"note":"","lat":33.2581097,"lng":44.3554636,"g":"https://www.google.com/maps/search/?api=1&query=33.2581097,44.3554636&query_place_id=ChIJeQp_7qrVWRURl0nxo46EBZE","gov":false},{"id":"3-32","day":"3","ord":32,"d":"السيدية","n":"عيادة د. زهراء فاضل مسلم","st":"الشارع التجاري","ph":"0773 613 1126","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2577158,"lng":44.3550263,"g":"https://www.google.com/maps/search/?api=1&query=33.2577158,44.3550263&query_place_id=ChIJn1RNJb7VWRURdWsFG81emqo","gov":false},{"id":"3-33","day":"3","ord":33,"d":"السيدية","n":"مجمع الروافد الطبي (يضم اسنان)","st":"الشارع التجاري","ph":"0770 626 1173","hr":"3–9 PM · Fri off","m":false,"r":4.5,"rc":0,"note":"مجمع طبي","lat":33.2566558,"lng":44.3559799,"g":"https://www.google.com/maps/search/?api=1&query=33.2566558,44.3559799&query_place_id=ChIJLY0RCqTVWRURCzux4NYgjjg","gov":false},{"id":"3-34","day":"3","ord":34,"d":"السيدية","n":"عيادة تداوي لطب الأسنان","st":"الشارع التجاري","ph":"0773 928 8779","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2556288,"lng":44.3557989,"g":"https://www.google.com/maps/search/?api=1&query=33.2556288,44.3557989&query_place_id=ChIJ9e0-qO7VWRURkBHiiqhdZaI","gov":false},{"id":"3-35","day":"3","ord":35,"d":"السيدية","n":"عيادة د. زينب محمود منسي","st":"الشارع التجاري","ph":"0770 655 1690","hr":"4–9:30 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.2545163,"lng":44.357354,"g":"https://www.google.com/maps/search/?api=1&query=33.2545163,44.357354&query_place_id=ChIJVTYPFADVWRURdC_UZUm_PJA","gov":false},{"id":"3-36","day":"3","ord":36,"d":"السيدية","n":"عيادة د. ضحى السامرائي","st":"الشارع التجاري","ph":"0772 365 3638","hr":"—","m":false,"r":2.5,"rc":0,"note":"","lat":33.2538882,"lng":44.357159,"g":"https://www.google.com/maps/search/?api=1&query=33.2538882,44.357159&query_place_id=ChIJL69Se8XVWRURJV7awZ2tdEk","gov":false},{"id":"3-37","day":"3","ord":37,"d":"السيدية","n":"عيادة ايفودنت لطب وتجميل الأسنان","st":"الشارع التجاري","ph":"0787 878 7852","hr":"3:30–8:30 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2521675,"lng":44.3573258,"g":"https://www.google.com/maps/search/?api=1&query=33.2521675,44.3573258&query_place_id=ChIJ4fVwHADVWRURxDaM6AAOHOw","gov":false},{"id":"3-38","day":"3","ord":38,"d":"السيدية","n":"عيادة د. سرمد عبد الباري","st":"شارع العلوة – مجمع القمة","ph":"0780 883 6489","hr":"1–9 PM · جمعة وسبت عطلة","m":false,"r":5.0,"rc":0,"note":"","lat":33.2518479,"lng":44.3622817,"g":"https://www.google.com/maps/search/?api=1&query=33.2518479,44.3622817&query_place_id=ChIJ_46YpnfVWRUROIssCO17Nyg","gov":false},{"id":"3-39","day":"3","ord":39,"d":"السيدية","n":"Taya Dental Clinic","st":"شارع العلوة","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.2513437,"lng":44.3594698,"g":"https://www.google.com/maps/search/?api=1&query=33.2513437,44.3594698&query_place_id=ChIJRTn5FgDVWRUR2nDn7nTcppk","gov":false},{"id":"3-40","day":"3","ord":40,"d":"السيدية","n":"Delta Dental Clinic","st":"السيدية","ph":"0780 883 6489","hr":"24h daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.2498593,"lng":44.3577476,"g":"https://www.google.com/maps/search/?api=1&query=33.2498593,44.3577476&query_place_id=ChIJW1OCwajVWRURbIKOGa_9OIo","gov":false},{"id":"3-41","day":"3","ord":41,"d":"السيدية","n":"Al Wasama Dental Clinic","st":"شارع الخيزران – بجانب جامعة الشعب","ph":"0771 882 2200","hr":"ساعات طويلة يومياً","m":true,"r":0,"rc":0,"note":"","lat":33.2509234,"lng":44.350716,"g":"https://www.google.com/maps/search/?api=1&query=33.2509234,44.350716&query_place_id=ChIJ7VRMglXVWRURdA171uWSPn4","gov":false},{"id":"3-42","day":"3","ord":42,"d":"السيدية","n":"عيادة د. بان كنعان","st":"السيدية (الجنوبية)","ph":"0770 059 7816","hr":"4–8 PM (سبت/اثنين/اربعاء/خميس)","m":false,"r":5.0,"rc":0,"note":"","lat":33.2443116,"lng":44.3556351,"g":"https://www.google.com/maps/search/?api=1&query=33.2443116,44.3556351&query_place_id=ChIJ_4EsQVTVWRURQR4P-RLsVHI","gov":false},{"id":"3-43","day":"3","ord":43,"d":"السيدية","n":"عيادة الزبيدي لطب وتجميل الاسنان","st":"الشارع الخدمي","ph":"0772 325 2317","hr":"4:30–9 PM · جمعة وسبت عطلة","m":false,"r":5.0,"rc":0,"note":"","lat":33.2329863,"lng":44.3562315,"g":"https://www.google.com/maps/search/?api=1&query=33.2329863,44.3562315&query_place_id=ChIJ1xBtm4jVWRUR5h2FjolkWqE","gov":false},{"id":"4-1","day":"4","ord":1,"d":"الكاظمية","n":"عيادة د. ضرغام الجبوري","st":"الكاظمية (الشمالية)","ph":"0770 144 1071","hr":"24h · Fri off","m":true,"r":0,"rc":0,"note":"","lat":33.3911661,"lng":44.3372909,"g":"https://www.google.com/maps/search/?api=1&query=33.3911661,44.3372909&query_place_id=ChIJg8avAwB5VxUR0QS_eF8VEXI","gov":false},{"id":"4-2","day":"4","ord":2,"d":"الكاظمية","n":"عيادة الأسنان – مركز ابن سينا","st":"الكاظمية","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.3811609,"lng":44.3449292,"g":"https://www.google.com/maps/search/?api=1&query=33.3811609,44.3449292&query_place_id=ChIJYxqbb1x5VxUR8lnqwRwgCBw","gov":false},{"id":"4-3","day":"4","ord":3,"d":"الكاظمية","n":"Darin عيادة دارين لطب وتجميل الأسنان","st":"الكاظمية","ph":"0782 200 0788","hr":"4–11 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3789893,"lng":44.3434737,"g":"https://www.google.com/maps/search/?api=1&query=33.3789893,44.3434737&query_place_id=ChIJaQ6OXoR5VxURP3Ia_lODYZU","gov":false},{"id":"4-4","day":"4","ord":4,"d":"الكاظمية","n":"عيادة د. ماهر الربيعي (معالجة وتقويم)","st":"قرب مدرسة قريش – مقابل جامع الحيدري","ph":"0773 199 9311","hr":"ساعات متغيرة","m":true,"r":0,"rc":0,"note":"","lat":33.3765621,"lng":44.3411928,"g":"https://www.google.com/maps/search/?api=1&query=33.3765621,44.3411928&query_place_id=ChIJdftjLb15VxURoDLhrJGn10M","gov":false},{"id":"4-5","day":"4","ord":5,"d":"الكاظمية","n":"عيادة د. الكرار احمد حسن","st":"شارع تانكي الماء – قرب فندق الكميل","ph":"0773 642 2387","hr":"4 PM–12 AM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3748246,"lng":44.344266,"g":"https://www.google.com/maps/search/?api=1&query=33.3748246,44.344266&query_place_id=ChIJ2YzmRMx5VxURdaLGwMo_428","gov":false},{"id":"4-6","day":"4","ord":6,"d":"الكاظمية","n":"Bassem's Smile Studio عيادة د. بسيم الواعظ","st":"شارع أكد","ph":"0780 075 7770","hr":"1–8 PM · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3706138,"lng":44.3445581,"g":"https://www.google.com/maps/search/?api=1&query=33.3706138,44.3445581&query_place_id=ChIJ9e4QLz95VxURnJajdMbj1sI","gov":false},{"id":"4-7","day":"4","ord":7,"d":"الكاظمية","n":"Snow White Dental Clinic","st":"تقاطع المشاط – مقابل قرية الهدايا","ph":"0771 777 2776","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.368948,"lng":44.343471,"g":"https://www.google.com/maps/search/?api=1&query=33.368948,44.343471&query_place_id=ChIJIVgokjh5VxURHBZxnum55o8","gov":false},{"id":"4-8","day":"4","ord":8,"d":"الكاظمية","n":"مركز الكاظمية التخصصي لطب الأسنان (حكومي)","st":"قرب باب المراد","ph":"","hr":"8:30 AM–2:30 PM (صباحي)","m":true,"r":3.5,"rc":0,"note":"مركز حكومي","lat":33.3750719,"lng":44.3407878,"g":"https://www.google.com/maps/search/?api=1&query=33.3750719,44.3407878&query_place_id=ChIJmwOkSUB5VxUR4tY_uWh4gp0","gov":true},{"id":"4-9","day":"4","ord":9,"d":"الكاظمية","n":"عيادة د. علي العطار","st":"الكاظمية","ph":"0782 620 2345","hr":"3–9 PM · Fri off","m":false,"r":4.0,"rc":0,"note":"","lat":33.373768,"lng":44.3394971,"g":"https://www.google.com/maps/search/?api=1&query=33.373768,44.3394971&query_place_id=ChIJwZ3p4bN5VxURBPxuNayn3sY","gov":false},{"id":"4-10","day":"4","ord":10,"d":"الكاظمية","n":"عيادة د. حسين ارشد","st":"الكاظمية","ph":"","hr":"3:30–10:30 PM","m":false,"r":5.0,"rc":0,"note":"","lat":33.3731875,"lng":44.3376875,"g":"https://www.google.com/maps/search/?api=1&query=33.3731875,44.3376875&query_place_id=ChIJKQJOU-h5VxURJzvVldv91KU","gov":false},{"id":"4-11","day":"4","ord":11,"d":"الكاظمية","n":"العبسلي لطب الاسنان","st":"شارع 60 – عمارة الانطاكي مقابل مدينة الامامين الطبية","ph":"0783 131 7171","hr":"3–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3754976,"lng":44.3287293,"g":"https://www.google.com/maps/search/?api=1&query=33.3754976,44.3287293&query_place_id=ChIJQTSreAB5VxURjN9Sv3_K340","gov":false},{"id":"4-12","day":"4","ord":12,"d":"الكاظمية","n":"عيادة د. علي الحسيني (زراعة)","st":"شارع 60","ph":"0780 870 1618","hr":"24h","m":true,"r":5.0,"rc":0,"note":"","lat":33.376934,"lng":44.3273122,"g":"https://www.google.com/maps/search/?api=1&query=33.376934,44.3273122&query_place_id=ChIJNbQQEBF5VxUR2td84tuNKPU","gov":false},{"id":"4-13","day":"4","ord":13,"d":"الكاظمية","n":"عيادة د. ثامر هاني الصفار","st":"شارع 60 – مقابل افران الزيتون","ph":"0790 462 0736","hr":"4–7 PM · Fri off","m":false,"r":1.3,"rc":0,"note":"","lat":33.3759545,"lng":44.3257254,"g":"https://www.google.com/maps/search/?api=1&query=33.3759545,44.3257254&query_place_id=ChIJU77dmSp5VxURrTtefj21ig4","gov":false},{"id":"4-14","day":"4","ord":14,"d":"الكاظمية","n":"عيادة د. فراس الطويل","st":"شارع 60 – مجاور المستشفى","ph":"0771 203 2401","hr":"4–10 PM","m":false,"r":4.0,"rc":0,"note":"","lat":33.3798024,"lng":44.3240725,"g":"https://www.google.com/maps/search/?api=1&query=33.3798024,44.3240725&query_place_id=ChIJJzedzsV5VxURYK5w_ZfjUJA","gov":false},{"id":"4-15","day":"4","ord":15,"d":"الكاظمية","n":"عيادة د. محمد العبيدي","st":"مجمع الحياة الطبي – شارع المستشفى التعليمي","ph":"","hr":"4–8 PM · Fri off","m":false,"r":4.9,"rc":0,"note":"","lat":33.3824528,"lng":44.3216834,"g":"https://www.google.com/maps/search/?api=1&query=33.3824528,44.3216834&query_place_id=ChIJEzsnpxF5VxURTwyQz_a_WV8","gov":false},{"id":"4-16","day":"4","ord":16,"d":"العطيفية","n":"عيادة النعمان لطب وتجميل الاسنان","st":"العطيفية (الشمالية)","ph":"0770 877 7941","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3644617,"lng":44.3582423,"g":"https://www.google.com/maps/search/?api=1&query=33.3644617,44.3582423&query_place_id=ChIJ05npOgB5VxUR6yBGXJgwplU","gov":false},{"id":"4-17","day":"4","ord":17,"d":"العطيفية","n":"عيادة د. شمس لطب الاسنان والتجميل","st":"شمال العطيفية","ph":"","hr":"24h · عطلة سبت/أحد","m":true,"r":5.0,"rc":0,"note":"","lat":33.3698199,"lng":44.3626121,"g":"https://www.google.com/maps/search/?api=1&query=33.3698199,44.3626121&query_place_id=ChIJo2zfAAB5VxURKUGLp5OhxPA","gov":false},{"id":"4-18","day":"4","ord":18,"d":"العطيفية","n":"غَيم لطب الاسنان","st":"شارع استشارية مستشفى القمة","ph":"0775 070 8052","hr":"2–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3560674,"lng":44.3539397,"g":"https://www.google.com/maps/search/?api=1&query=33.3560674,44.3539397&query_place_id=ChIJxS7LjH15VxURQ_wIp3UAE2Y","gov":false},{"id":"4-19","day":"4","ord":19,"d":"العطيفية","n":"اليوسف لطب وتجميل وزراعة الأسنان","st":"الشارع العام – مجاور صيدلية نادية السعدي","ph":"0772 427 8785","hr":"3–11 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3552725,"lng":44.3551431,"g":"https://www.google.com/maps/search/?api=1&query=33.3552725,44.3551431&query_place_id=ChIJs-1PlmR5VxURvEo0q1W8IAQ","gov":false},{"id":"4-20","day":"4","ord":20,"d":"العطيفية","n":"Gama Clinics مركز كاما لطب الأسنان","st":"العطيفية","ph":"0772 660 9009","hr":"4–10 PM · Fri off","m":false,"r":4.7,"rc":0,"note":"","lat":33.3547182,"lng":44.3547768,"g":"https://www.google.com/maps/search/?api=1&query=33.3547182,44.3547768&query_place_id=ChIJZ7tpuVR5VxURvEuQv9IH-ps","gov":false},{"id":"4-21","day":"4","ord":21,"d":"العطيفية","n":"عيادة د. غني محمد العزاوي","st":"عمارة مجاور مرطبات المدهش ط3","ph":"","hr":"4–7:30 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3547797,"lng":44.3555658,"g":"https://www.google.com/maps/search/?api=1&query=33.3547797,44.3555658&query_place_id=ChIJmb1uiml5VxURePvN3-XpDYI","gov":false},{"id":"4-22","day":"4","ord":22,"d":"العطيفية","n":"العيادة النمساوية لطب وتجميل الفم والاسنان","st":"العطيفية","ph":"0773 819 3898","hr":"ساعات متغيرة","m":false,"r":4.0,"rc":0,"note":"","lat":33.3545875,"lng":44.3557758,"g":"https://www.google.com/maps/search/?api=1&query=33.3545875,44.3557758&query_place_id=ChIJ8VmdaSx5VxURlv0Klj6SCW8","gov":false},{"id":"4-23","day":"4","ord":23,"d":"العطيفية","n":"عيادة د. مروان","st":"عمارة المدهش ط3","ph":"0770 502 0695","hr":"4–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3545888,"lng":44.3559067,"g":"https://www.google.com/maps/search/?api=1&query=33.3545888,44.3559067&query_place_id=ChIJYfjoJiJ5VxURDdTHhcEgYgs","gov":false},{"id":"4-24","day":"4","ord":24,"d":"العطيفية","n":"عيادة التِرا Ultra لطب الاسنان","st":"العطيفية","ph":"0771 116 6747","hr":"3–10 PM daily","m":false,"r":0,"rc":0,"note":"","lat":33.3539634,"lng":44.3570067,"g":"https://www.google.com/maps/search/?api=1&query=33.3539634,44.3570067&query_place_id=ChIJYYzOCgB5VxURU5CxBQ-0aI8","gov":false},{"id":"4-25","day":"4","ord":25,"d":"العطيفية","n":"عيادات الطاووس 1 (زراعة وتجميل)","st":"شارع العطيفية – مجاور حلويات القند","ph":"0770 332 6633","hr":"1–9 PM daily","m":true,"r":2.0,"rc":0,"note":"","lat":33.3537724,"lng":44.3574701,"g":"https://www.google.com/maps/search/?api=1&query=33.3537724,44.3574701&query_place_id=ChIJay2czxB5VxURQ6kRTjgY9i8","gov":false},{"id":"4-26","day":"4","ord":26,"d":"العطيفية","n":"عيادة ليبرتي لطب الاسنان","st":"شارع جامع براثا – قرب مول نور الياسمين","ph":"","hr":"حتى 11 PM daily","m":true,"r":4.8,"rc":0,"note":"","lat":33.3538482,"lng":44.3578205,"g":"https://www.google.com/maps/search/?api=1&query=33.3538482,44.3578205&query_place_id=ChIJKfg7vit5VxURPhQutWpf5_Q","gov":false},{"id":"4-27","day":"4","ord":27,"d":"العطيفية","n":"العطيفية لطب وزراعة الأسنان","st":"الشارع العام","ph":"0772 424 8485","hr":"10 AM–8 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.3539029,"lng":44.3622962,"g":"https://www.google.com/maps/search/?api=1&query=33.3539029,44.3622962&query_place_id=ChIJ36Jd9UB5VxURtDNJeInWYeA","gov":false},{"id":"4-28","day":"4","ord":28,"d":"العطيفية","n":"عيادة د. أحمد مالك","st":"العطيفية","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3540039,"lng":44.36292,"g":"https://www.google.com/maps/search/?api=1&query=33.3540039,44.36292&query_place_id=ChIJ87QndgB5VxURevEL_Nis3wU","gov":false},{"id":"4-29","day":"4","ord":29,"d":"العطيفية","n":"Dr.Teeth Clinic","st":"العطيفية","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.353929,"lng":44.3629452,"g":"https://www.google.com/maps/search/?api=1&query=33.353929,44.3629452&query_place_id=ChIJZ46fYgB5VxUR3b8EFe6WvgU","gov":false},{"id":"4-30","day":"4","ord":30,"d":"الرحمانية","n":"مركز صحي الرحمانية (حكومي – يضم اسنان)","st":"الرحمانية","ph":"","hr":"صباحي (حكومي)","m":true,"r":3.9,"rc":0,"note":"مركز حكومي","lat":33.341973,"lng":44.3687418,"g":"https://www.google.com/maps/search/?api=1&query=33.341973,44.3687418&query_place_id=ChIJ3y9_zC1_VxUR8Avx0ab9_YA","gov":true},{"id":"4-31","day":"4","ord":31,"d":"الرحمانية","n":"عيادة الياس لطب الاسنان والتجميل","st":"شارع حيفا","ph":"0790 176 7226","hr":"12–8 PM · Fri off","m":true,"r":4.5,"rc":0,"note":"","lat":33.339428,"lng":44.3764549,"g":"https://www.google.com/maps/search/?api=1&query=33.339428,44.3764549&query_place_id=ChIJI3Wy2L9_VxURINWg15IjUss","gov":false},{"id":"4-32","day":"4","ord":32,"d":"الرحمانية","n":"مركز الكرامة التخصصي لطب الاسنان (حكومي)","st":"شارع 6 – قرب مستشفى الكرامة","ph":"","hr":"8:30 AM–2:30 PM (صباحي)","m":true,"r":4.0,"rc":0,"note":"مركز حكومي","lat":33.3323511,"lng":44.378081,"g":"https://www.google.com/maps/search/?api=1&query=33.3323511,44.378081&query_place_id=ChIJqcXJKjh_VxURAqhRnS71rw4","gov":true},{"id":"4-33","day":"4","ord":33,"d":"الرحمانية","n":"Dental Elegant عيادة دنتل اليغانت","st":"الشواكة / العلاوي","ph":"0786 080 0300","hr":"2–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.332688,"lng":44.3894793,"g":"https://www.google.com/maps/search/?api=1&query=33.332688,44.3894793&query_place_id=ChIJkf4wiRN_VxURjdhuD5zFWXM","gov":false},{"id":"4-34","day":"4","ord":34,"d":"الرحمانية","n":"عيادة د. يحيى الجبوري","st":"وسط الكرخ – قرب الصالحية","ph":"0782 168 4078","hr":"4–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3234446,"lng":44.391621,"g":"https://www.google.com/maps/search/?api=1&query=33.3234446,44.391621&query_place_id=ChIJ4SUsMgB_VxURSt23gjaVZcc","gov":false},{"id":"5-1","day":"5","ord":1,"d":"الغزالية","n":"Friends Dental Clinic عيادة فريندز","st":"شارع 49 المركزي","ph":"0774 567 4404","hr":"3–9:30 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3542882,"lng":44.2621696,"g":"https://www.google.com/maps/search/?api=1&query=33.3542882,44.2621696&query_place_id=ChIJbREZ-9p9VxURAGPGS04Ok0s","gov":false},{"id":"5-2","day":"5","ord":2,"d":"الغزالية","n":"عيادة د. شاكر جمال","st":"الغزالية","ph":"0773 041 2020","hr":"3:30–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3530712,"lng":44.278176,"g":"https://www.google.com/maps/search/?api=1&query=33.3530712,44.278176&query_place_id=ChIJL_PXbwB9VxURR7HJ7zEdytk","gov":false},{"id":"5-3","day":"5","ord":3,"d":"الغزالية","n":"عيادات الغزالية لطب الاسنان","st":"شارع مدير الامن","ph":"0786 006 6745","hr":"12–9 PM daily","m":true,"r":4.7,"rc":0,"note":"","lat":33.3409495,"lng":44.2783429,"g":"https://www.google.com/maps/search/?api=1&query=33.3409495,44.2783429&query_place_id=ChIJ6VyOCDV9VxURJ_fJVOfG1Qo","gov":false},{"id":"5-4","day":"5","ord":4,"d":"الغزالية","n":"عيادة د. عدنان مهند","st":"شارع الهياكل","ph":"0770 648 9818","hr":"4–10 PM · Fri off","m":false,"r":4.9,"rc":0,"note":"","lat":33.347101,"lng":44.2967092,"g":"https://www.google.com/maps/search/?api=1&query=33.347101,44.2967092&query_place_id=ChIJDfdwJxV9VxURvNcqmKl8AD0","gov":false},{"id":"5-5","day":"5","ord":5,"d":"الشعلة","n":"عيادة لينار","st":"الشعلة","ph":"","hr":"4–8:30 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3652523,"lng":44.2906575,"g":"https://www.google.com/maps/search/?api=1&query=33.3652523,44.2906575&query_place_id=ChIJlfu0SQB9VxUR3sQXe0KQgYQ","gov":false},{"id":"5-6","day":"5","ord":6,"d":"الشعلة","n":"عيادة السنا لطب الاسنان","st":"الشعلة","ph":"0770 720 0437","hr":"—","m":false,"r":4.2,"rc":0,"note":"","lat":33.3670257,"lng":44.2934945,"g":"https://www.google.com/maps/search/?api=1&query=33.3670257,44.2934945&query_place_id=ChIJf0OlRBx9VxURl1PEvprtYfw","gov":false},{"id":"5-7","day":"5","ord":7,"d":"الشعلة","n":"عيادة البسمة لطب الأسنان","st":"سوق الجوادين","ph":"","hr":"3:30–7 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3671562,"lng":44.2940275,"g":"https://www.google.com/maps/search/?api=1&query=33.3671562,44.2940275&query_place_id=ChIJD38WCmF9VxURq2EVeEGY4fQ","gov":false},{"id":"5-8","day":"5","ord":8,"d":"الشعلة","n":"عيادة سيدرا للأسنان","st":"الشعلة (الشرقية)","ph":"","hr":"1–9 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.3776608,"lng":44.2929395,"g":"https://www.google.com/maps/search/?api=1&query=33.3776608,44.2929395&query_place_id=ChIJFwALVgB9VxURxHL9pmnK5vE","gov":false},{"id":"5-9","day":"5","ord":9,"d":"الشعلة","n":"عيادة د. زين العابدين الطحان (زراعة وتقويم)","st":"الشعلة","ph":"0771 693 1570","hr":"3–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3685443,"lng":44.2781394,"g":"https://www.google.com/maps/search/?api=1&query=33.3685443,44.2781394&query_place_id=ChIJs4_9KbR9VxURaSLobdssueY","gov":false},{"id":"5-10","day":"5","ord":10,"d":"الشعلة","n":"مركز النور التخصصي لطب الاسنان (حكومي)","st":"الشعلة","ph":"","hr":"8:30 AM–2 PM (صباحي)","m":true,"r":4.1,"rc":0,"note":"مركز حكومي","lat":33.3642626,"lng":44.2810071,"g":"https://www.google.com/maps/search/?api=1&query=33.3642626,44.2810071&query_place_id=ChIJ-wz9gPN8VxUREVIo90fqjfw","gov":true},{"id":"5-11","day":"5","ord":11,"d":"الشعلة","n":"عيادة أمواج بغداد لطب الأسنان","st":"الشعلة","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.3633209,"lng":44.2804557,"g":"https://www.google.com/maps/search/?api=1&query=33.3633209,44.2804557&query_place_id=ChIJ5aBfHQB9VxURLSyqBX2uCPA","gov":false},{"id":"5-12","day":"5","ord":12,"d":"الشعلة","n":"عيادة الرحمانية لطب الاسنان","st":"حي الرحمانية – الشعلة","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.3630254,"lng":44.2806704,"g":"https://www.google.com/maps/search/?api=1&query=33.3630254,44.2806704&query_place_id=ChIJ45ihWwB9VxURkB1EJGp3BzE","gov":false},{"id":"5-13","day":"5","ord":13,"d":"الشعلة","n":"عيادة د. زيد علوش","st":"الشعلة","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.362905,"lng":44.2794705,"g":"https://www.google.com/maps/search/?api=1&query=33.362905,44.2794705&query_place_id=ChIJJYxep0x9VxUR5Uc9vmT90NE","gov":false},{"id":"5-14","day":"5","ord":14,"d":"الشعلة","n":"الكامل لطب الأسنان","st":"الشعلة","ph":"0773 363 3390","hr":"5–9 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3646963,"lng":44.2786248,"g":"https://www.google.com/maps/search/?api=1&query=33.3646963,44.2786248&query_place_id=ChIJsZYBMi19VxURZmkiNdxt72k","gov":false},{"id":"5-15","day":"5","ord":15,"d":"الشعلة","n":"عيادة تِرياق الطبية","st":"شارع الضغط","ph":"0774 417 1621","hr":"4 PM–12 AM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3599046,"lng":44.2688667,"g":"https://www.google.com/maps/search/?api=1&query=33.3599046,44.2688667&query_place_id=ChIJmzzTAQB9VxURUYwd48YbLZE","gov":false},{"id":"5-16","day":"5","ord":16,"d":"الشعلة","n":"عيادة د. سيف الربيعي","st":"قطاع السابع – شارع سيد شناوة","ph":"","hr":"حتى 8 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.3661034,"lng":44.2702391,"g":"https://www.google.com/maps/search/?api=1&query=33.3661034,44.2702391&query_place_id=ChIJK_2QEll9VxURQdV_iwbS2e8","gov":false},{"id":"5-17","day":"5","ord":17,"d":"الشعلة","n":"عيادة د. زهراء الموسوي","st":"الشعلة – قطاع السابع","ph":"","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.3661625,"lng":44.2702344,"g":"https://www.google.com/maps/search/?api=1&query=33.3661625,44.2702344&query_place_id=ChIJMcOMUgB9VxURRmvArHjQO-c","gov":false},{"id":"5-18","day":"5","ord":18,"d":"الشعلة","n":"مجمع اهلنا الطبي (اسنان)","st":"الشعلة – الدوانم","ph":"","hr":"4–10 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"مجمع طبي","lat":33.3745787,"lng":44.2610497,"g":"https://www.google.com/maps/search/?api=1&query=33.3745787,44.2610497&query_place_id=ChIJHUJ0xed9VxURPXvs1gXa2A4","gov":false},{"id":"5-19","day":"5","ord":19,"d":"الحرية","n":"عيادة الدكتور باقر","st":"شارع الدولعي","ph":"","hr":"3–9 PM","m":false,"r":5.0,"rc":0,"note":"","lat":33.3635058,"lng":44.3045116,"g":"https://www.google.com/maps/search/?api=1&query=33.3635058,44.3045116&query_place_id=ChIJ6eIk8Dd9VxUR55UDPKXiR48","gov":false},{"id":"5-20","day":"5","ord":20,"d":"الحرية","n":"مجمع الثقلين الطبي (يضم اسنان)","st":"شارع المعارض","ph":"0774 411 2248","hr":"4–10 PM daily","m":false,"r":4.9,"rc":0,"note":"مجمع طبي","lat":33.3566224,"lng":44.3067136,"g":"https://www.google.com/maps/search/?api=1&query=33.3566224,44.3067136&query_place_id=ChIJX9BxUPd9VxURCG642fD0r0M","gov":false},{"id":"5-21","day":"5","ord":21,"d":"الحرية","n":"عيادة د. علي النصراوي العبادي","st":"الحرية الثالثة","ph":"0784 942 5255","hr":"24h","m":true,"r":0,"rc":0,"note":"","lat":33.3537346,"lng":44.307983,"g":"https://www.google.com/maps/search/?api=1&query=33.3537346,44.307983&query_place_id=ChIJZ7iCZAB9VxUR2GqzLJnvmPc","gov":false},{"id":"5-22","day":"5","ord":22,"d":"الحرية","n":"مركز الحرية الطبي (يضم اسنان)","st":"حي السلام – شارع 30","ph":"0775 763 0222","hr":"3–9:30 PM daily","m":false,"r":5.0,"rc":0,"note":"مجمع طبي","lat":33.347987,"lng":44.3064488,"g":"https://www.google.com/maps/search/?api=1&query=33.347987,44.3064488&query_place_id=ChIJ998fJQB9VxURJW14crIUnuQ","gov":false},{"id":"5-23","day":"5","ord":23,"d":"الحرية","n":"عيادة د. محمد اسحاق الدباغ","st":"شارع الدور العريض","ph":"0782 922 9927","hr":"3–9 PM","m":false,"r":3.3,"rc":0,"note":"","lat":33.3509117,"lng":44.3160708,"g":"https://www.google.com/maps/search/?api=1&query=33.3509117,44.3160708&query_place_id=ChIJsdU9wmp9VxURE2uLJsOYICY","gov":false},{"id":"5-24","day":"5","ord":24,"d":"الحرية","n":"DR.Mustafa عيادة د. مصطفى","st":"الحرية","ph":"0771 167 2270","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.3513907,"lng":44.3198193,"g":"https://www.google.com/maps/search/?api=1&query=33.3513907,44.3198193&query_place_id=ChIJQ3F4xHh9VxUR7UKYFC9QQ_g","gov":false},{"id":"5-25","day":"5","ord":25,"d":"الحرية","n":"Nabu عيادة نابو لطب الأسنان","st":"الحرية","ph":"0774 434 3999","hr":"4–10 PM daily","m":false,"r":4.9,"rc":0,"note":"","lat":33.3519375,"lng":44.3238312,"g":"https://www.google.com/maps/search/?api=1&query=33.3519375,44.3238312&query_place_id=ChIJPds0CgB_VxUR_iZZraUn_t4","gov":false},{"id":"5-26","day":"5","ord":26,"d":"الحرية","n":"عيادة د. حيدر عادل","st":"الحرية الأولى","ph":"0790 155 9336","hr":"4–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3528354,"lng":44.324561,"g":"https://www.google.com/maps/search/?api=1&query=33.3528354,44.324561&query_place_id=ChIJs7rfhyx_VxURm07bPQxINsI","gov":false},{"id":"5-27","day":"5","ord":27,"d":"الحرية","n":"عيادة د. علي الشرقي","st":"الحرية – مقابل كباب ابو علي","ph":"0750 029 6747","hr":"4–11 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.3527552,"lng":44.3247581,"g":"https://www.google.com/maps/search/?api=1&query=33.3527552,44.3247581&query_place_id=ChIJmxQMmnB_VxURCurm9aSsJbU","gov":false},{"id":"5-28","day":"5","ord":28,"d":"الحرية","n":"عيادة ايليكنت – فرع الحرية","st":"الحرية (الشرقية)","ph":"0776 127 7778","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.349578,"lng":44.3301874,"g":"https://www.google.com/maps/search/?api=1&query=33.349578,44.3301874&query_place_id=ChIJycqvbAB_VxURBSdb9Mod4Ns","gov":false},{"id":"5-29","day":"5","ord":29,"d":"الحرية","n":"Zaha Dental Clinic عيادة زها","st":"الحرية","ph":"0773 818 6669","hr":"5–10 PM daily","m":false,"r":4.7,"rc":0,"note":"","lat":33.3552546,"lng":44.3286227,"g":"https://www.google.com/maps/search/?api=1&query=33.3552546,44.3286227&query_place_id=ChIJTd92Qqh_VxURgDywrHKyQD0","gov":false},{"id":"5-30","day":"5","ord":30,"d":"الحرية","n":"عيادة د. احمد كلينك","st":"الحرية (الشمالية الشرقية)","ph":"0773 500 0233","hr":"4–8 PM daily","m":false,"r":4.0,"rc":0,"note":"","lat":33.3604795,"lng":44.3298704,"g":"https://www.google.com/maps/search/?api=1&query=33.3604795,44.3298704&query_place_id=ChIJq5SXqLJ_VxURj9Yu5lx77Bk","gov":false},{"id":"5-31","day":"5","ord":31,"d":"الحرية","n":"عيادة د. اسامة البياتي","st":"الحرية","ph":"","hr":"24h · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.3597524,"lng":44.326499,"g":"https://www.google.com/maps/search/?api=1&query=33.3597524,44.326499&query_place_id=ChIJ8ecGNAB_VxURqFv1I8nsFsc","gov":false},{"id":"5-32","day":"5","ord":32,"d":"الحرية","n":"عيادة د. احمد كاظم العنزي","st":"الحرية الثالثة – ابو جفات","ph":"0790 157 7408","hr":"2 PM–12 AM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.3597595,"lng":44.3142551,"g":"https://www.google.com/maps/search/?api=1&query=33.3597595,44.3142551&query_place_id=ChIJ58namlR9VxUR-rj0VTU-fuA","gov":false},{"id":"5-33","day":"5","ord":33,"d":"الحرية","n":"عيادة الدرر لطب وتجميل الأسنان","st":"الحرية الثانية/الثالثة","ph":"","hr":"10 AM–10 PM daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.3611284,"lng":44.3138923,"g":"https://www.google.com/maps/search/?api=1&query=33.3611284,44.3138923&query_place_id=ChIJg3EA3459VxURAPhUaau4vMs","gov":false},{"id":"6-1","day":"6","ord":1,"d":"الدورة","n":"عيادة د. زيد الزيدي Dr. Zaid Al Zaidi","st":"المهدية","ph":"","hr":"5–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2553217,"lng":44.3702972,"g":"https://www.google.com/maps/search/?api=1&query=33.2553217,44.3702972&query_place_id=ChIJB6nOxHfVWRURcNo4s5vjbZQ","gov":false},{"id":"6-2","day":"6","ord":2,"d":"الدورة","n":"عيادة تقويم الاسنان د. سارة ضياء","st":"المهدية الاولى","ph":"0780 320 0399","hr":"9 PM–12 AM (مسائي متأخر)","m":false,"r":0,"rc":0,"note":"","lat":33.2557602,"lng":44.371926,"g":"https://www.google.com/maps/search/?api=1&query=33.2557602,44.371926&query_place_id=ChIJ6WInN6PVWRURI34eXJ8-WJo","gov":false},{"id":"6-3","day":"6","ord":3,"d":"الدورة","n":"Al-Dawoodi عيادة الداودي","st":"المهدية الثانية","ph":"0781 140 9022","hr":"11AM–1PM + 5–10 PM · Fri off","m":true,"r":4.5,"rc":0,"note":"","lat":33.2512981,"lng":44.3704696,"g":"https://www.google.com/maps/search/?api=1&query=33.2512981,44.3704696&query_place_id=ChIJHRGxcRvVWRURdP3elPQu7TM","gov":false},{"id":"6-4","day":"6","ord":4,"d":"الدورة","n":"عيادة د. علي نعمه الجبوري","st":"الدورة","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2564455,"lng":44.3825438,"g":"https://www.google.com/maps/search/?api=1&query=33.2564455,44.3825438&query_place_id=ChIJ4-75WwDVWRURaFX_bPbdqIs","gov":false},{"id":"6-5","day":"6","ord":5,"d":"الدورة","n":"عيادة د. حسام الدين","st":"شارع المصافي","ph":"0780 323 6950","hr":"4–9 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2555836,"lng":44.3828843,"g":"https://www.google.com/maps/search/?api=1&query=33.2555836,44.3828843&query_place_id=ChIJVXNXUzXVWRURXldTKboua7Q","gov":false},{"id":"6-6","day":"6","ord":6,"d":"الدورة","n":"عيادات اوبرا لطب وتجميل الاسنان","st":"شارع طعمة","ph":"0780 191 1888","hr":"3–9 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2541505,"lng":44.3945986,"g":"https://www.google.com/maps/search/?api=1&query=33.2541505,44.3945986&query_place_id=ChIJ19MNjQbVWRURkNRDHJc7L2U","gov":false},{"id":"6-7","day":"6","ord":7,"d":"الدورة","n":"عيادة د. رند محمد الجزائري","st":"الدورة","ph":"","hr":"4–8 PM · Fri off","m":false,"r":3.5,"rc":0,"note":"","lat":33.2514882,"lng":44.3956852,"g":"https://www.google.com/maps/search/?api=1&query=33.2514882,44.3956852&query_place_id=ChIJrXvYjU_VWRUR80Yf2pAO_W0","gov":false},{"id":"6-8","day":"6","ord":8,"d":"الدورة","n":"عيادة سمايل كير لطب الأسنان","st":"شارع طعمة","ph":"0771 725 7136","hr":"24h daily","m":true,"r":5.0,"rc":0,"note":"تقسيط لموظفي الرافدين · د. دعاء + د. علي","lat":33.2506008,"lng":44.3957228,"g":"https://www.google.com/maps/search/?api=1&query=33.2506008,44.3957228&query_place_id=ChIJka8HCwDVWRURlMMAnkeQCng","gov":false},{"id":"6-9","day":"6","ord":9,"d":"الدورة","n":"مجمع الاسراء الطبي (اسنان)","st":"الدورة","ph":"","hr":"—","m":false,"r":4.8,"rc":0,"note":"مجمع طبي","lat":33.2532989,"lng":44.4030153,"g":"https://www.google.com/maps/search/?api=1&query=33.2532989,44.4030153&query_place_id=ChIJa4IEPwArWBUR2j-PM3QawfY","gov":false},{"id":"6-10","day":"6","ord":10,"d":"الدورة","n":"عيادة ليلو لطب وتجميل وتقويم الاسنان","st":"الدورة","ph":"0772 905 5039","hr":"4–9 PM daily","m":false,"r":4.6,"rc":0,"note":"","lat":33.2533385,"lng":44.409176,"g":"https://www.google.com/maps/search/?api=1&query=33.2533385,44.409176&query_place_id=ChIJIYyvSmcrWBURF7RJIWl2T08","gov":false},{"id":"6-11","day":"6","ord":11,"d":"الدورة","n":"عيادة د. اسامة زيد حسن","st":"شارع ابو طيارة","ph":"0783 836 3996","hr":"4–10 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2546472,"lng":44.4093006,"g":"https://www.google.com/maps/search/?api=1&query=33.2546472,44.4093006&query_place_id=ChIJ3web_bsrWBUR8qqvOYinmko","gov":false},{"id":"6-12","day":"6","ord":12,"d":"الدورة","n":"عيادة د. نبأ صلاح قدوري","st":"شارع ابو طيارة","ph":"0770 999 0235","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.2545785,"lng":44.4086627,"g":"https://www.google.com/maps/search/?api=1&query=33.2545785,44.4086627&query_place_id=ChIJnXND_HErWBUR7OpV0qGe9a4","gov":false},{"id":"6-13","day":"6","ord":13,"d":"الدورة","n":"عيادة د. عدي ابراهيم","st":"شارع ابو طيارة","ph":"","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2548085,"lng":44.4085747,"g":"https://www.google.com/maps/search/?api=1&query=33.2548085,44.4085747&query_place_id=ChIJ387GEIsrWBURh7hBVoykcCw","gov":false},{"id":"6-14","day":"6","ord":14,"d":"الدورة","n":"Ideal Clinic عيادة د. حميد خليفة","st":"شارع ابو طيارة","ph":"0771 771 3722","hr":"4–9 PM · Fri off","m":false,"r":1.0,"rc":0,"note":"","lat":33.2552331,"lng":44.4077655,"g":"https://www.google.com/maps/search/?api=1&query=33.2552331,44.4077655&query_place_id=ChIJgfEKis8rWBURf9ASfir4WwM","gov":false},{"id":"6-15","day":"6","ord":15,"d":"الدورة","n":"عيادة د. ابراهيم عبدالوهاب","st":"شارع ابو طيارة","ph":"0773 200 9725","hr":"4–10 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.2569081,"lng":44.4078858,"g":"https://www.google.com/maps/search/?api=1&query=33.2569081,44.4078858&query_place_id=ChIJffTbUgCBVxURwptJcu6z90s","gov":false},{"id":"6-16","day":"6","ord":16,"d":"الدورة","n":"عيادة الباهر لطب الاسنان","st":"شارع ابو طيارة","ph":"0770 008 9821","hr":"—","m":false,"r":0,"rc":0,"note":"","lat":33.2575538,"lng":44.4076006,"g":"https://www.google.com/maps/search/?api=1&query=33.2575538,44.4076006&query_place_id=ChIJDTwCDACBVxURLmbw0bQ1wRY","gov":false},{"id":"6-17","day":"6","ord":17,"d":"الدورة","n":"Al-Amir Dental Clinic","st":"شارع ابو طيارة","ph":"","hr":"4–10 PM · Fri off","m":false,"r":3.0,"rc":0,"note":"","lat":33.2578219,"lng":44.4079681,"g":"https://www.google.com/maps/search/?api=1&query=33.2578219,44.4079681&query_place_id=ChIJ1YgnzAeAVxUR1ymyCxt72-A","gov":false},{"id":"6-18","day":"6","ord":18,"d":"الدورة","n":"عيادة زيوس","st":"شارع ابو طيارة","ph":"0781 296 8640","hr":"3–8 PM · Fri off","m":false,"r":0,"rc":0,"note":"","lat":33.257829,"lng":44.4074945,"g":"https://www.google.com/maps/search/?api=1&query=33.257829,44.4074945&query_place_id=ChIJnwFKL_yBVxURmZP5EI1VIR0","gov":false},{"id":"6-19","day":"6","ord":19,"d":"الدورة","n":"عيادة الشقيري للأسنان","st":"الدورة","ph":"0776 600 6644","hr":"—","m":false,"r":5.0,"rc":0,"note":"","lat":33.2576576,"lng":44.4052303,"g":"https://www.google.com/maps/search/?api=1&query=33.2576576,44.4052303&query_place_id=ChIJC7C4UQDVWRURXC0qo2556VU","gov":false},{"id":"6-20","day":"6","ord":20,"d":"الدورة","n":"عيادة الدورة لطب الاسنان والتجميل","st":"الدورة","ph":"0771 000 3568","hr":"24h · Sun off","m":true,"r":0,"rc":0,"note":"","lat":33.2614546,"lng":44.4066742,"g":"https://www.google.com/maps/search/?api=1&query=33.2614546,44.4066742&query_place_id=ChIJwbPd92eBVxURGVWtHCDxCs4","gov":false},{"id":"6-21","day":"6","ord":21,"d":"الدورة","n":"عيادة الراوي","st":"الدورة","ph":"","hr":"24h · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.261749,"lng":44.4081039,"g":"https://www.google.com/maps/search/?api=1&query=33.261749,44.4081039&query_place_id=ChIJQVGxqoiBVxURaMzriTgCpJg","gov":false},{"id":"6-22","day":"6","ord":22,"d":"الدورة","n":"Cardinal عيادة كاردينال (اسنان وجلدية)","st":"الدورة (الشرقية)","ph":"0772 970 5000","hr":"3–8 PM · Fri off","m":false,"r":5.0,"rc":0,"note":"","lat":33.2594273,"lng":44.4207154,"g":"https://www.google.com/maps/search/?api=1&query=33.2594273,44.4207154&query_place_id=ChIJ700TqJmBVxUR79hC3BEl1Vo","gov":false},{"id":"6-23","day":"6","ord":23,"d":"الدورة","n":"Pedo Dental Clinic عيادة بيدو","st":"نهاية شارع ابو طيارة – مجاور مول هلا","ph":"0771 416 4335","hr":"24h daily","m":true,"r":5.0,"rc":0,"note":"","lat":33.2477139,"lng":44.4111999,"g":"https://www.google.com/maps/search/?api=1&query=33.2477139,44.4111999&query_place_id=ChIJL29I3V0rWBURjr7gzduJmuk","gov":false},{"id":"6-24","day":"6","ord":24,"d":"الدورة","n":"عيادة الطلح لطب وتجميل الاسنان","st":"حي الشرطة","ph":"","hr":"4–10 PM daily","m":false,"r":5.0,"rc":0,"note":"","lat":33.2476616,"lng":44.4062287,"g":"https://www.google.com/maps/search/?api=1&query=33.2476616,44.4062287&query_place_id=ChIJtzqyaXgrWBURx98pqqnx34w","gov":false},{"id":"6-25","day":"6","ord":25,"d":"الدورة","n":"عيادة د. مهند مناضل رؤوف","st":"شارع الصحة","ph":"0772 530 5339","hr":"24h · Fri off","m":true,"r":5.0,"rc":0,"note":"","lat":33.2366814,"lng":44.3861272,"g":"https://www.google.com/maps/search/?api=1&query=33.2366814,44.3861272&query_place_id=ChIJJ09PepfVWRUR2f-newOXkok","gov":false}];
+const DMETA = {"1":{"w":"السبت","t":"المنصور","c":"#1D6FB8","tip":"ابدأ من شارع أبو جعفر المنصور ← شارع الأميرات ← تقاطع ١٤ رمضان. أغلب العيادات بعد ٤ عصراً."},"2":{"w":"الأحد","t":"الحارثية + القادسية","c":"#0E8A6D","tip":"شارع الكندي قابل للمشي بالكامل (اركن مرة واحدة). ثم اليرموك فالقادسية. يوم ثقيل — ركّز على المراكز الكبيرة أولاً."},"3":{"w":"الاثنين","t":"حي العامل + البياع + السيدية","c":"#C2571A","tip":"٧ نيسان ← شارع 30 ← شارع 20 (البياع) ← ثم الشارع التجاري بالسيدية: ~15 عيادة متراصة، اركن وامشِ."},"4":{"w":"الثلاثاء","t":"الكاظمية + العطيفية + الرحمانية","c":"#0D7D8C","tip":"المراكز الحكومية (باب المراد، الرحمانية، الكرامة) صباحية فقط — ابدأ بها الصبح، ثم الكاظمية فمجمع العطيفية."},"5":{"w":"الأربعاء","t":"الغزالية + الشعلة + الحرية","c":"#A3372C","tip":"أطول يوم قيادة (~25 كم): شارع 49 الغزالية ← الهياكل ← الشعلة ← الحرية حتى حي السلام."},"6":{"w":"الخميس","t":"الدورة","c":"#2F7A4D","tip":"شارع أبو طيارة: ~10 عيادات في 400 متر — اركن وامشِ. ثم شارع طعمة فالمهدية فحي الصحة. الجمعة عطلة!"}};
+const SEEDP = [["كومبوزت A2 (سرنجة)","قطعة"],["بوند Bonding","قنينة"],["أسيد Etchant","سرنجة"],["ألجينيت 450غ","علبة"],["جبس صخري","كيس"],["قفازات لاتكس","علبة 100"],["كمامات طبية","علبة 50"],["إبر بنج قصيرة","علبة 100"],["بنج ليدوكائين","علبة 50"],["أقلام حفر Diamond","قطعة"],["ملفات إندو K-Files","طقم"],["ورق كواشف","دفتر"],["أملغم كبسول","علبة 50"],["سائل تعقيم","لتر"]];
+const byId = {}; DATA.forEach(c=>byId[c.id]=c);
 
-const DEFAULT_QUOTA = [
-  {id:qid(), name:"Complete denture", done:0, target:1},
-  {id:qid(), name:"RPD", done:0, target:1},
-  {id:qid(), name:"Crown", done:0, target:2},
-  {id:qid(), name:"Bridge units", done:0, target:3},
-  {id:qid(), name:"Composite restorations", done:0, target:10},
-  {id:qid(), name:"Amalgam restorations", done:0, target:5},
-  {id:qid(), name:"Root canal treatment", done:0, target:4},
-  {id:qid(), name:"Extractions", done:0, target:10},
-  {id:qid(), name:"Scaling & polishing", done:0, target:5}
-];
-
-function qid(){ return "q" + Math.random().toString(36).slice(2,9); }
-function cid(){ return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-
-let state = load();
+/* ================= storage ================= */
+let MEM = null;
 function load(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const s = JSON.parse(raw); if(s && Array.isArray(s.cases) && Array.isArray(s.quota)){ s.places = s.places || []; s.tour = s.tour || []; return s; } }
-  }catch(e){}
-  return { cases:[], quota: DEFAULT_QUOTA.map(q=>({...q})), places:[], tour:[] };
+  let raw=null;
+  try{ raw = localStorage.getItem('kdental2'); }catch(e){}
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  // migrate from v1
+  let v1=null; try{ v1 = JSON.parse(localStorage.getItem('kdental')||'null'); }catch(e){}
+  const s = {clinics: v1||{}, products: SEEDP.map((p,i)=>({id:'p'+i, n:p[0], u:p[1], pr:0})), orders: [], cfg:{office:'مكتبي', target:15}};
+  return s;
 }
-function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Could not save — storage blocked"); } }
+let S = MEM = load();
+function persist(){ try{ localStorage.setItem('kdental2', JSON.stringify(S)); }catch(e){ MEM=S; } refreshHeader(); }
+const rec = id => S.clinics[id] || {};
+function saveC(id, patch){ S.clinics[id] = Object.assign({}, S.clinics[id]||{}, patch); persist(); }
+const fmt = n => (Math.round(n)||0).toLocaleString('en-US');
+const today = () => new Date().toISOString().slice(0,10);
 
-/* ---------------- Utils ---------------- */
+/* ---- money helpers ---- */
+function orderTotal(o){ return o.lines.reduce((s,l)=>s+l.q*l.p,0) - (o.disc||0); }
+function orderPaid(o){ return (o.payments||[]).reduce((s,p)=>s+p.amt,0); }
+function clinicDebt(cid){ return S.orders.filter(o=>o.cid===cid).reduce((s,o)=>s+Math.max(0,orderTotal(o)-orderPaid(o)),0); }
+function totalDebt(){ return S.orders.reduce((s,o)=>s+Math.max(0,orderTotal(o)-orderPaid(o)),0); }
+function monthSales(){ const m=today().slice(0,7); return S.orders.filter(o=>o.date.startsWith(m)).reduce((s,o)=>s+orderTotal(o),0); }
+function fuDue(){ const t=today(); return DATA.filter(c=>{const f=rec(c.id).fu; return f&&f.date&&f.date<=t;}); }
+
+let curDay="1", curView="Day", curSales="orders", map=null, layer=null, activeFilters=new Set();
 const $ = s => document.querySelector(s);
-function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function daysUntil(iso){
-  if(!iso) return null;
-  const t = new Date(todayISO()+"T00:00:00"), d = new Date(iso+"T00:00:00");
-  return Math.round((d - t) / 86400000);
-}
-function fmtDate(iso){
-  if(!iso) return "—";
-  const d = new Date(iso+"T00:00:00");
-  return d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
-}
-function statusIndex(id){ return STATUSES.findIndex(s=>s.id===id); }
-function toast(msg){
-  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2200);
-}
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1700); }
+function phoneOf(c){ const r=rec(c.id); return (r.ph&&r.ph.trim())||c.ph; }
+function waOf(c){ const p=phoneOf(c); if(!p) return ""; let d=p.replace(/\D/g,''); if(d.startsWith('0')) d='964'+d.slice(1); if(!d.startsWith('964')) d='964'+d; return d; }
+const visited = c => !!rec(c.id).v;
+const LEADC = {"A":"#1E7B4F","B":"#B7791F","C":"#B3382C","":"#C8D0D8"};
 
-/* Case urgency: returns {cls, pill} */
-function urgency(c){
-  if(c.status === "delivered") return {cls:"done", pill:'<span class="pill done">Done</span>'};
-  if(c.status === "remake") return {cls:"overdue", pill:'<span class="pill overdue">Remake</span>'};
-  const d = daysUntil(c.due);
-  if(d === null) return {cls:"active", pill:""};
-  if(d < 0)  return {cls:"overdue", pill:`<span class="pill overdue">Overdue ${-d}d</span>`};
-  if(d === 0) return {cls:"soon", pill:'<span class="pill soon">Due today</span>'};
-  if(d <= 3) return {cls:"soon", pill:`<span class="pill soon">Due in ${d}d</span>`};
-  return {cls:"active", pill:`<span class="pill ok">${fmtDate(c.due)}</span>`};
-}
-
-/* ---------------- Tabs ---------------- */
-let tab = "today";
-document.querySelectorAll("nav button").forEach(b=>{
-  b.addEventListener("click", ()=>{ tab = b.dataset.tab; renderTabs(); });
-});
-function renderTabs(){
-  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("sel", b.dataset.tab===tab));
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  $("#view-"+tab).classList.add("active");
-  $("#fab").classList.toggle("show", tab==="today" || tab==="cases");
-  if(tab==="today") renderToday();
-  if(tab==="cases") renderCases();
-  if(tab==="quota") renderQuota();
-  if(tab==="map") renderMap();
-}
-
-/* ---------------- Today ---------------- */
-function renderToday(){
-  const v = $("#view-today");
-  const open = state.cases.filter(c=>c.status!=="delivered");
-  const overdue = open.filter(c=>{const d=daysUntil(c.due); return d!==null && d<0;});
-  const soon = open.filter(c=>{const d=daysUntil(c.due); return d!==null && d>=0 && d<=7;});
-  const atLab = open.filter(c=>c.status==="sent").length;
-  const qTotal = state.quota.reduce((a,q)=>a+q.target,0);
-  const qDone  = state.quota.reduce((a,q)=>a+Math.min(q.done,q.target),0);
-  const behind = state.quota.filter(q=>q.done<q.target).sort((a,b)=>(a.done/a.target)-(b.done/b.target)).slice(0,3);
-
-  let h = `<div class="stats">
-    <div class="stat ${overdue.length?"alert":""}"><b>${overdue.length}</b><span>Overdue</span></div>
-    <div class="stat ${soon.length?"warn":""}"><b>${soon.length}</b><span>Due ≤ 7 days</span></div>
-    <div class="stat"><b>${atLab}</b><span>At the lab</span></div>
+/* ================= clinic card ================= */
+function cardHTML(c, showDay){
+  const r=rec(c.id), p=phoneOf(c), w=waOf(c), dm=DMETA[c.day];
+  const debt=clinicDebt(c.id);
+  const fu=r.fu&&r.fu.date?r.fu:null;
+  return `
+  <div class="stop ${r.v?'done':''}" data-id="${c.id}">
+   <div class="pin"><b>${c.ord}</b></div>
+   <div class="card">
+    <div class="nm"><span><span class="lead" style="background:${LEADC[r.lead||'']}"></span>${c.n} ${c.m?'<span class="sun">☀</span>':''}</span>
+      <span class="badge" style="background:${dm.c}">${showDay?('ي'+c.day+' · '):''}${c.d}</span></div>
+    <div class="meta">${c.st?c.st+' · ':''}${c.hr||'الدوام غير معروف'}${c.r?` · <span class="star">★ ${c.r}</span> (${c.rc})`:''}${c.note?`<br>📌 ${c.note}`:''}</div>
+    ${debt>0?`<div class="debtline">💰 ذمة: ${fmt(debt)} د.ع</div>`:''}
+    ${fu?`<div class="fuline">⏰ متابعة: ${fu.date}${fu.note?' — '+fu.note:''}</div>`:''}
+    <div class="acts">
+      <a class="a-call ${p?'':'dis'}" href="tel:${(p||'').replace(/\s/g,'')}">📞</a>
+      <a class="a-wa ${w?'':'dis'}" href="https://wa.me/${w}" target="_blank">💬</a>
+      <a class="a-map" href="${c.g}" target="_blank">🗺️ توجيه</a>
+      <button class="a-done" onclick="toggleV('${c.id}')">${r.v?'✔ تمت':'☐ زيارة'}</button>
+    </div>
+    <div class="acts">
+      <button class="a-ord" onclick="openOrderSheet('${c.id}')">🛒 طلبية</button>
+      <button class="a-fu" onclick="openFuSheet('${c.id}')">⏰ متابعة</button>
+      <button class="a-tpl ${w?'':'dis'}" onclick="openTplSheet('${c.id}')">💬 قوالب</button>
+    </div>
+    <div class="extra">
+      <label>تصنيف العميل</label>
+      <select onchange="saveC('${c.id}',{lead:this.value});rerender()">
+        <option value="" ${!r.lead?'selected':''}>غير مصنّف</option>
+        <option value="A" ${r.lead==='A'?'selected':''}>A — عميل قوي 🟢</option>
+        <option value="B" ${r.lead==='B'?'selected':''}>B — محتمل 🟡</option>
+        <option value="C" ${r.lead==='C'?'selected':''}>C — ضعيف 🔴</option>
+      </select>
+      <label>الهاتف (سجّله إن كان ناقصاً)</label>
+      <input value="${r.ph||c.ph||''}" placeholder="07xx xxx xxxx" onchange="saveC('${c.id}',{ph:this.value});markSaved(this)">
+      <label>جهة الاتصال (الطبيب / السكرتيرة)</label>
+      <input value="${(r.who||'').replace(/"/g,'&quot;')}" placeholder="د. …" onchange="saveC('${c.id}',{who:this.value});markSaved(this)">
+      <label>ملاحظات</label>
+      <textarea rows="2" onchange="saveC('${c.id}',{note:this.value});markSaved(this)">${r.note||''}</textarea>
+      <div class="savemark">${r.date?('آخر زيارة: '+r.date):''}</div>
+      ${S.orders.filter(o=>o.cid===c.id).length?`<button class="mini" style="margin-top:6px" onclick="showClinicOrders('${c.id}')">🧾 طلبيات العيادة (${S.orders.filter(o=>o.cid===c.id).length})</button>`:''}
+    </div>
+   </div>
   </div>`;
+}
+function markSaved(el){ const sm=el.closest('.extra').querySelector('.savemark'); const old=sm.textContent; sm.textContent='✓ حُفظ'; setTimeout(()=>sm.textContent=old,1200); }
+function toggleV(id){
+  const now=!rec(id).v;
+  saveC(id,{v:now, date: now?today():rec(id).date});
+  rerender(); toast(now?'سُجّلت الزيارة ✔':'أُلغيت الزيارة');
+}
+window.toggleV=toggleV; window.saveC=saveC; window.markSaved=markSaved;
 
-  if(overdue.length){
-    h += `<div class="section-title">Needs action</div>` + overdue.map(caseCard).join("");
+function rerender(){ render(); if(curView==='Map') drawMap(); if(curView==='Sales') renderSales(); if(curView==='Money') renderMoney(); if(curView==='Stats') renderStats(); }
+
+/* ================= header/chips/day ================= */
+function refreshHeader(){
+  const done=DATA.filter(visited).length;
+  $('#pbar').style.width=(100*done/DATA.length).toFixed(1)+'%';
+  $('#subline').textContent=`${done}/${DATA.length} زيارة · مبيعات الشهر ${fmt(monthSales())} د.ع · ذمم ${fmt(totalDebt())} د.ع`;
+  const due=fuDue().length, dot=$('#fudot');
+  dot.classList.toggle('hide', due===0); dot.textContent=due;
+}
+function buildChips(){
+  const el=$('#daychips'); el.innerHTML='';
+  for(const d of Object.keys(DMETA)){
+    const m=DMETA[d], b=document.createElement('button');
+    b.className='chip'+(d===curDay?' on':'');
+    if(d===curDay) b.style.background=m.c;
+    b.textContent=`${d} · ${m.w}`;
+    b.onclick=()=>{curDay=d; buildChips(); render(); if(curView==='Map') drawMap();};
+    el.appendChild(b);
   }
-  if(soon.length){
-    h += `<div class="section-title">Coming up</div>` + soon.sort((a,b)=>(a.due||"").localeCompare(b.due||"")).map(caseCard).join("");
+}
+function render(){
+  const m=DMETA[curDay], tip=$('#daytip');
+  tip.style.background=m.c;
+  const list=DATA.filter(c=>c.day===curDay), done=list.filter(visited).length;
+  tip.innerHTML=`<b>اليوم ${curDay} · ${m.w} — ${m.t}</b>${m.tip}<div style="margin-top:5px;font-size:11.5px;opacity:.9">${done}/${list.length} تمت</div>`;
+  const box=$('#routeList');
+  box.style.setProperty('--rc',m.c);
+  box.innerHTML=list.map(c=>cardHTML(c,false)).join('');
+  attachExpand(box);
+  refreshHeader(); renderAllList();
+}
+function attachExpand(box){
+  box.querySelectorAll('.card .nm, .card .meta').forEach(e=>{
+    e.style.cursor='pointer';
+    e.onclick=ev=>ev.target.closest('.stop').classList.toggle('open');
+  });
+}
+
+/* ================= all/search ================= */
+const FILTERS=[["m","☀ صباحي"],["nop","بدون رقم"],["todo","لم تُزَر"],["debt","عليها ذمة"],["A","عملاء A"],["gov","حكومي"],["top","★4.5+"]];
+function buildFilters(){
+  const el=$('#fchips'); el.innerHTML='';
+  for(const [k,l] of FILTERS){
+    const b=document.createElement('button');
+    b.className='chip'+(activeFilters.has(k)?' on':'');
+    b.textContent=l;
+    b.onclick=()=>{activeFilters.has(k)?activeFilters.delete(k):activeFilters.add(k); buildFilters(); renderAllList();};
+    el.appendChild(b);
   }
-  if(!overdue.length && !soon.length){
-    h += `<div class="card empty">${open.length ? "Nothing due this week. 🦷" : "No lab cases yet — tap + to add your first case."}</div>`;
-  }
-
-  h += `<div class="section-title">Requirements — ${qDone}/${qTotal} signed off</div>`;
-  if(behind.length){
-    h += behind.map(q=>{
-      const pct = q.target ? Math.round(100*q.done/q.target) : 0;
-      return `<div class="card" style="padding:11px 15px">
-        <div style="display:flex;justify-content:space-between;font-size:14px">
-          <b>${esc(q.name)}</b><span class="muted">${q.done}/${q.target} · ${pct}%</span>
-        </div>${qbar(q)}</div>`;
-    }).join("");
-  } else {
-    h += `<div class="card empty">All requirements complete. Well done. ✔</div>`;
-  }
-  v.innerHTML = h;
-  bindCaseCards(v);
+}
+function renderAllList(){
+  const q=($('#q').value||'').trim();
+  let list=DATA.slice();
+  if(q) list=list.filter(c=>(c.n+' '+c.st+' '+c.d).includes(q));
+  if(activeFilters.has('m')) list=list.filter(c=>c.m);
+  if(activeFilters.has('nop')) list=list.filter(c=>!phoneOf(c));
+  if(activeFilters.has('todo')) list=list.filter(c=>!visited(c));
+  if(activeFilters.has('debt')) list=list.filter(c=>clinicDebt(c.id)>0);
+  if(activeFilters.has('A')) list=list.filter(c=>rec(c.id).lead==='A');
+  if(activeFilters.has('gov')) list=list.filter(c=>c.gov);
+  if(activeFilters.has('top')) list=list.filter(c=>c.r>=4.5);
+  $('#qcount').textContent=list.length+' نتيجة';
+  const box=$('#allList');
+  box.innerHTML=list.map(c=>cardHTML(c,true)).join('')||'<div class="empty">لا نتائج</div>';
+  attachExpand(box);
 }
 
-/* ---------------- Cases ---------------- */
-const FILTERS = [
-  {id:"active", label:"Active"},
-  {id:"all", label:"All"},
-  {id:"overdue", label:"Overdue"},
-  {id:"sent", label:"At lab"},
-  {id:"remake", label:"Remakes"},
-  {id:"delivered", label:"Delivered"}
-];
-let filter = "active";
-
-function renderCases(){
-  $("#caseFilters").innerHTML = FILTERS.map(f=>`<button class="chip ${filter===f.id?"sel":""}" data-f="${f.id}">${f.label}</button>`).join("");
-  $("#caseFilters").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f; renderCases();}));
-
-  let list = state.cases.slice();
-  if(filter==="active") list = list.filter(c=>c.status!=="delivered");
-  if(filter==="overdue") list = list.filter(c=>{const d=daysUntil(c.due); return c.status!=="delivered" && d!==null && d<0;});
-  if(filter==="sent") list = list.filter(c=>c.status==="sent");
-  if(filter==="remake") list = list.filter(c=>c.status==="remake");
-  if(filter==="delivered") list = list.filter(c=>c.status==="delivered");
-
-  list.sort((a,b)=>{
-    if(a.status==="delivered" !== (b.status==="delivered")) return a.status==="delivered" ? 1 : -1;
-    return (a.due||"9999").localeCompare(b.due||"9999");
-  });
-
-  $("#caseList").innerHTML = list.length
-    ? list.map(caseCard).join("")
-    : `<div class="card empty">No cases here. Tap + to add one.</div>`;
-  bindCaseCards($("#caseList"));
-}
-
-function caseCard(c){
-  const u = urgency(c);
-  const si = statusIndex(c.status);
-  const steps = STATUSES.slice(0,5).map((s,i)=>{
-    if(c.status==="remake") return `<i class="${i<=2?"remake":""}"></i>`;
-    return `<i class="${i<=si?"on":""}"></i>`;
-  }).join("");
-  const meta = [
-    esc(c.type),
-    c.tooth ? "Tooth " + esc(c.tooth) : "",
-    c.shade ? `<span class="shade">${esc(c.shade)}</span>` : "",
-  ].filter(Boolean).join(" · ");
-  return `<button class="case ${u.cls}" data-id="${c.id}">
-    <div class="top"><span class="name">${esc(c.patient) || "Unnamed patient"}</span>${u.pill}</div>
-    <div class="meta">${meta}${c.lab ? " · " + esc(c.lab) : ""}</div>
-    <div class="steps">${steps}</div>
-    <div class="status-line"><span>${esc((STATUSES[si]||{}).label || "")}</span><span>${c.due ? "Due " + fmtDate(c.due) : ""}</span></div>
-  </button>`;
-}
-function bindCaseCards(root){
-  root.querySelectorAll(".case").forEach(el=>el.addEventListener("click",()=>openCaseForm(el.dataset.id)));
-}
-
-/* ---------------- Case form (sheet) ---------------- */
-function openCaseForm(id){
-  const c = id ? state.cases.find(x=>x.id===id) : null;
-  const s = c || {patient:"",type:CASE_TYPES[0],tooth:"",shade:"",lab:"",labPhone:"",sent:"",due:"",status:"prep",notes:""};
-  openSheet(`
-    <h2>${c ? "Edit case" : "New lab case"}</h2>
-    <label>Patient name</label><input id="f-patient" value="${esc(s.patient)}" placeholder="e.g. Ahmed K.">
-    <div class="row2">
-      <div><label>Case type</label><select id="f-type">${CASE_TYPES.map(t=>`<option ${t===s.type?"selected":""}>${t}</option>`).join("")}</select></div>
-      <div><label>Tooth / teeth (FDI)</label><input id="f-tooth" value="${esc(s.tooth)}" placeholder="e.g. 11, 21"></div>
-    </div>
-    <label>Shade</label>
-    <div class="shades" id="f-shades">${SHADES.map(sh=>`<button type="button" class="shade-tab ${s.shade===sh?"sel":""}" data-sh="${sh}" style="background:${SHADE_COLORS[sh]}">${sh}</button>`).join("")}</div>
-    <label>Lab name</label><input id="f-lab" value="${esc(s.lab)}" placeholder="e.g. Erbil Dental Lab">
-    <label>Lab WhatsApp number</label><input id="f-labphone" inputmode="tel" value="${esc(s.labPhone||"")}" placeholder="e.g. 0750 123 4567">
-    <div class="row2">
-      <div><label>Date sent</label><input type="date" id="f-sent" value="${esc(s.sent)}"></div>
-      <div><label>Due date</label><input type="date" id="f-due" value="${esc(s.due)}"></div>
-    </div>
-    <label>Status</label>
-    <select id="f-status">${STATUSES.map(st=>`<option value="${st.id}" ${st.id===s.status?"selected":""}>${st.label}</option>`).join("")}</select>
-    <label>Notes</label><textarea id="f-notes" rows="2" placeholder="Occlusion notes, margin design, material instructions…">${esc(s.notes)}</textarea>
-    <div style="height:16px"></div>
-    <button class="btn" id="f-save">${c ? "Save changes" : "Add case"}</button>
-    ${c ? `<div style="height:8px"></div><button class="btn wa" id="f-wa">🟢 Send prescription on WhatsApp</button>
-    <div style="height:8px"></div><button class="btn danger" id="f-del">Delete case</button>` : ""}
-  `);
-  let shade = s.shade;
-  $("#f-shades").querySelectorAll(".shade-tab").forEach(b=>b.addEventListener("click",()=>{
-    shade = (shade===b.dataset.sh) ? "" : b.dataset.sh;
-    $("#f-shades").querySelectorAll(".shade-tab").forEach(x=>x.classList.toggle("sel", x.dataset.sh===shade));
-  }));
-  $("#f-save").addEventListener("click",()=>{
-    const data = {
-      patient: $("#f-patient").value.trim(),
-      type: $("#f-type").value,
-      tooth: $("#f-tooth").value.trim(),
-      shade,
-      lab: $("#f-lab").value.trim(),
-      labPhone: $("#f-labphone").value.trim(),
-      sent: $("#f-sent").value,
-      due: $("#f-due").value,
-      status: $("#f-status").value,
-      notes: $("#f-notes").value.trim()
-    };
-    if(!data.patient){ toast("Add a patient name"); return; }
-    if(c){ Object.assign(c, data); toast("Case updated"); }
-    else { state.cases.push({id:cid(), ...data}); toast("Case added"); }
-    save(); closeSheet(); renderTabs();
-  });
-  if(c) $("#f-wa").addEventListener("click",()=>{
-    const msg = [
-      "🦷 Lab case — " + ($("#f-patient").value.trim() || "patient"),
-      "Type: " + $("#f-type").value,
-      $("#f-tooth").value.trim() ? "Tooth (FDI): " + $("#f-tooth").value.trim() : "",
-      shade ? "Shade: " + shade : "",
-      $("#f-due").value ? "Needed by: " + fmtDate($("#f-due").value) : "",
-      $("#f-notes").value.trim() ? "Notes: " + $("#f-notes").value.trim() : ""
-    ].filter(Boolean).join("\n");
-    window.open(waLink($("#f-labphone").value, msg), "_blank");
-  });
-  if(c) $("#f-del").addEventListener("click",()=>{
-    if(!confirm("Delete this case? This cannot be undone.")) return;
-    state.cases = state.cases.filter(x=>x.id!==c.id);
-    save(); closeSheet(); renderTabs(); toast("Case deleted");
-  });
-}
-
-/* ---------------- Quota ---------------- */
-function qbar(q){
-  const seg = Math.min(q.target, 20) || 1;
-  const per = q.target / seg;
-  let bars = "";
-  for(let i=0;i<seg;i++){
-    const filled = q.done >= (i+1)*per - 0.001;
-    const last = filled && q.done >= q.target && i === seg-1;
-    bars += `<i class="${filled ? "f" + (last?" last":"") : ""}"></i>`;
-  }
-  return `<div class="qbar">${bars}</div>`;
-}
-function renderQuota(){
-  const v = $("#quotaList");
-  if(!state.quota.length){ v.innerHTML = `<div class="card empty">No requirements yet — add your clinic quotas below.</div>`; return; }
-  v.innerHTML = state.quota.map(q=>`
-    <div class="quota-item" data-id="${q.id}">
-      <div class="top">
-        <span class="qname">${esc(q.name)} ${q.done>=q.target?'<span class="pill done">Complete</span>':""}</span>
-        <span class="count">${q.done}<small>/${q.target}</small></span>
-      </div>
-      ${qbar(q)}
-      <div class="qctrl">
-        <button data-act="minus" aria-label="Decrease">−</button>
-        <button data-act="plus" aria-label="Increase">+</button>
-        <button data-act="edit" class="edit">Edit</button>
-      </div>
-    </div>`).join("");
-  v.querySelectorAll(".quota-item").forEach(el=>{
-    const q = state.quota.find(x=>x.id===el.dataset.id);
-    el.querySelector('[data-act="plus"]').addEventListener("click",()=>{ q.done++; save(); renderQuota(); if(q.done===q.target) toast(q.name+" complete! 🎉"); });
-    el.querySelector('[data-act="minus"]').addEventListener("click",()=>{ if(q.done>0){ q.done--; save(); renderQuota(); } });
-    el.querySelector('[data-act="edit"]').addEventListener("click",()=>openQuotaForm(q.id));
-  });
-}
-function openQuotaForm(id){
-  const q = id ? state.quota.find(x=>x.id===id) : null;
-  openSheet(`
-    <h2>${q ? "Edit requirement" : "New requirement"}</h2>
-    <label>Name</label><input id="q-name" value="${esc(q?q.name:"")}" placeholder="e.g. Crown preparations">
-    <div class="row2">
-      <div><label>Target</label><input type="number" id="q-target" min="1" value="${q?q.target:5}"></div>
-      <div><label>Done so far</label><input type="number" id="q-done" min="0" value="${q?q.done:0}"></div>
-    </div>
-    <div style="height:16px"></div>
-    <button class="btn" id="q-save">${q ? "Save" : "Add requirement"}</button>
-    ${q ? `<div style="height:8px"></div><button class="btn danger" id="q-del">Delete</button>` : ""}
-  `);
-  $("#q-save").addEventListener("click",()=>{
-    const name = $("#q-name").value.trim();
-    const target = Math.max(1, parseInt($("#q-target").value||"1",10));
-    const done = Math.max(0, parseInt($("#q-done").value||"0",10));
-    if(!name){ toast("Add a name"); return; }
-    if(q){ Object.assign(q,{name,target,done}); } else { state.quota.push({id:qid(),name,target,done}); }
-    save(); closeSheet(); renderQuota(); toast("Saved");
-  });
-  if(q) $("#q-del").addEventListener("click",()=>{
-    if(!confirm("Delete this requirement?")) return;
-    state.quota = state.quota.filter(x=>x.id!==q.id);
-    save(); closeSheet(); renderQuota();
-  });
-}
-$("#btnAddQuota").addEventListener("click",()=>openQuotaForm(null));
-
-/* ---------------- Guide ---------------- */
-const GUIDE = [
-{ico:"🧪", t:"Impressions — materials & technique", b:`
-<h4>Alginate (irreversible hydrocolloid)</h4>
-<ul><li>Uses: study casts, opposing arch, denture primary impressions.</li>
-<li>Correct water:powder ratio; mix fast to a creamy, streak-free consistency.</li>
-<li>Seat with light vibration, hold still until fully set (~2–3 min), remove with one quick snap.</li>
-<li><b>Pour within 15–30 minutes</b> — alginate distorts by syneresis/imbibition. If delayed, wrap in a damp tissue in a sealed bag.</li></ul>
-<h4>PVS / addition silicone (final impressions)</h4>
-<ul><li>Uses: crown & bridge, final denture impressions, implant work.</li>
-<li>Putty-wash (2-step or 1-step) or light body with a custom/stock tray + adhesive.</li>
-<li>Retract gingiva (cord ± hemostatic agent) so margins are captured clearly.</li>
-<li>Latex gloves inhibit PVS setting — avoid touching putty with latex.</li></ul>
-<div class="tip">Check every impression before dismissing the patient: margins continuous, no pulls/drags, no bubbles at finish lines, tray not showing through.</div>`},
-{ico:"🗿", t:"Pouring casts & custom trays", b:`
-<h4>Pouring</h4>
-<ol><li>Rinse and disinfect the impression; shake off excess water.</li>
-<li>Vacuum-mix (or hand-mix carefully) dental stone to correct W:P ratio.</li>
-<li>Add stone in small increments from one end with vibration to chase out air.</li>
-<li>Let set 45–60 min before separating; don't leave alginate on stone overnight (surface gets chalky).</li></ol>
-<h4>Custom tray (for final denture impressions)</h4>
-<ol><li>Block out undercuts on the primary cast, adapt one wax spacer sheet.</li>
-<li>Adapt light-cured or self-cure acrylic 2–3 mm thick; add a handle that doesn't distort the lip.</li>
-<li>Trim borders 2 mm short of the sulcus to leave room for border molding.</li>
-<li>Border mold with greenstick/heavy body, then final wash impression (ZOE or light body PVS).</li></ol>`},
-{ico:"👑", t:"Crown & bridge — full workflow", b:`
-<ol><li><b>Diagnosis & shade:</b> take shade before preparation (teeth dehydrate and lighten during work).</li>
-<li><b>Preparation:</b> occlusal reduction ~1.5–2 mm (functional cusp bevel), axial 1–1.5 mm, taper 6–10°, defined finish line (chamfer for zirconia/metal, shoulder for E-max facial).</li>
-<li><b>Retraction & final impression</b> with clear, continuous margins.</li>
-<li><b>Bite registration</b> in centric occlusion; face-bow if the case demands.</li>
-<li><b>Temporization:</b> well-fitting temp protects the prep, keeps the tooth in position, maintains gingival contour.</li>
-<li><b>Lab stage:</b> send prescription (see checklist section), impression/scan, bite, shade, opposing.</li>
-<li><b>Try-in / framework check:</b> marginal fit (explorer + radiograph for proximal), contacts (floss snaps, doesn't tear), occlusion.</li>
-<li><b>Cementation:</b> isolate, follow cement instructions, remove excess before full set, re-check occlusion.</li></ol>
-<div class="warn">Most remakes trace back to the impression or the bite record — check both twice before sending.</div>`},
-{ico:"🎨", t:"Shade selection tips", b:`
-<ul><li>Take shade at the start of the appointment, teeth fully hydrated.</li>
-<li>Use natural daylight or a corrected light source; neutral background (grey bib), no bright lipstick.</li>
-<li>Look for ≤ 5–7 seconds per tab, then rest eyes on something grey/blue — the eye fatigues fast for yellows.</li>
-<li>Match the middle third of the tooth; note separately cervical, body, incisal + translucency/characterizations.</li>
-<li>Photograph the shade tab next to the tooth (tab number visible) and send it to the lab.</li></ul>
-<div class="tip">Value (lightness) matters more than hue. When torn between two tabs, choose the higher value — a slightly lighter crown is less noticeable than a darker one.</div>`},
-{ico:"😁", t:"Complete denture — the 5 visits", b:`
-<ol><li><b>Primary impressions</b> (alginate, stock tray) → primary casts → custom trays.</li>
-<li><b>Final impressions:</b> border molding, then wash impression → master casts → record bases + occlusal rims.</li>
-<li><b>Jaw relations:</b> set OVD (freeway space 2–4 mm), record centric relation, mark midline/canine/smile lines, select mould & shade → articulate → teeth setting.</li>
-<li><b>Try-in:</b> verify esthetics, phonetics ("S" and "F" sounds), OVD, centric — get patient approval <i>before</i> processing.</li>
-<li><b>Delivery:</b> check fit, extension, occlusion (remount if needed); educate on hygiene; review in 24–48 h for sore spots (use pressure-indicating paste).</li></ol>`},
-{ico:"🦿", t:"RPD basics — design & stages", b:`
-<ul><li>Classify with <b>Kennedy</b> (I bilateral free-end, II unilateral free-end, III bounded, IV anterior crossing midline); Applegate's rules for modifications.</li>
-<li>Survey the cast: path of insertion, undercuts for retention, guide planes.</li>
-<li>Cr-Co framework components: major connector, minor connectors, rests (on prepared rest seats!), direct retainers (clasps engage ~0.25 mm undercut), indirect retainers for free-end saddles.</li>
-<li>Stages: impressions → framework try-in (fit, rests seated, no rock) → altered cast if Kennedy I/II → wax try-in → delivery.</li></ul>
-<div class="tip">Prepare rest seats <i>before</i> the final impression — the framework can only be as good as what the lab receives.</div>`},
-{ico:"⏳", t:"Temporization & cementation", b:`
-<ul><li><b>Temporary crowns:</b> bis-acryl in a pre-op matrix (putty or vacuum-formed) is fastest; trim margins flush, adjust occlusion, cement with non-eugenol temp cement if using resin cement later (eugenol inhibits resin).</li>
-<li><b>Cement choice:</b> zirconia/metal → RMGI or self-adhesive resin; E-max/veneers → etch + silane + adhesive resin cement; implant crowns → minimal cement, margin supragingival, or screw-retained.</li>
-<li>Clean excess at gel stage; floss contacts; check occlusion with articulating paper (patient sitting up).</li></ul>`},
-{ico:"📋", t:"Lab prescription checklist (send with every case)", b:`
-<ul><li>Patient ID / your name & stage</li>
-<li>Restoration type + material (e.g. "monolithic zirconia crown, 11")</li>
-<li>Tooth numbers (FDI), pontic design for bridges</li>
-<li>Shade: body + cervical/incisal notes, photo of tab beside tooth</li>
-<li>Margin design & where you want the finish line</li>
-<li>Occlusal scheme notes / reduced occlusal clearance warnings</li>
-<li>Items enclosed: impression(s), bite, opposing, shade photo</li>
-<li>Due date — and your contact for questions</li></ul>
-<div class="tip">A clear prescription is the cheapest remake insurance there is. When in doubt, call the technician.</div>`},
-{ico:"🛠", t:"Common lab problems & causes", b:`
-<ul><li><b>Crown doesn't seat:</b> tight proximal contacts (adjust with articulating film in the contact), undercuts in prep, stone bubble in the die, impression drag at margin.</li>
-<li><b>Open margin:</b> distorted impression, chipped die, over-tapered prep with poor finish line.</li>
-<li><b>High occlusion:</b> inaccurate bite record, casts not mounted properly, patient bit into soft record.</li>
-<li><b>Wrong shade:</b> shade taken after drying/preparation, poor lighting, no photo sent.</li>
-<li><b>Denture doesn't stay:</b> over/under-extended borders, no posterior palatal seal, occlusal disharmony dislodging it.</li>
-<li><b>Porcelain fracture:</b> insufficient reduction, sharp prep angles, unsupported porcelain.</li></ul>`}
-];
-$("#view-guide").innerHTML =
-  `<div class="section-title">Lab & clinic reference</div>` +
-  GUIDE.map(g=>`<details class="guide"><summary><span class="ico">${g.ico}</span>${g.t}</summary><div class="body">${g.b}</div></details>`).join("") +
-  `<p class="muted" style="text-align:center;margin:18px 0">Study reference only — always follow your department's protocol.</p>`;
-
-/* ---------------- WhatsApp helpers ---------------- */
-function waDigits(p){
-  let d = (p||"").replace(/\D/g,"");
-  if(d.startsWith("00")) d = d.slice(2);
-  if(d.startsWith("0")) d = "964" + d.slice(1); // Iraqi local → international
-  return d;
-}
-function waLink(phone, text){
-  const d = waDigits(phone), t = encodeURIComponent(text||"");
-  if(d) return `https://wa.me/${d}` + (t ? `?text=${t}` : "");
-  return `https://api.whatsapp.com/send?text=${t}`;
-}
-
-/* ---------------- Map, places & tour ---------------- */
-const PLACE_CATS = ["Dental lab","Clinic","Supplier","Landmark","Food","Hotel","Other"];
-const CAT_COLORS = {"Dental lab":"#0E7C7B","Clinic":"#3E8E5A","Supplier":"#9C7320","Landmark":"#7A5EA8","Food":"#D95D4E","Hotel":"#3B7BB8","Other":"#5A6E77"};
-let map=null, markerLayer=null, tourLayer=null, lastTap=null, mapSub="places", shownDay=null;
-
-function ensureMap(){
-  if(map) return true;
-  if(typeof L === "undefined"){
-    $("#map").innerHTML = '<div class="empty">The map needs internet the first time it loads.<br>Connect and reopen this tab.</div>';
-    return false;
-  }
-  map = L.map("map").setView([36.19, 44.01], 12); // Erbil
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:"© OpenStreetMap"}).addTo(map);
-  markerLayer = L.layerGroup().addTo(map);
-  tourLayer = L.layerGroup().addTo(map);
-  map.on("click", e=>{
-    lastTap = {lat:+e.latlng.lat.toFixed(6), lng:+e.latlng.lng.toFixed(6)};
-    const div = document.createElement("div"); div.className = "map-pop";
-    const b1 = document.createElement("button"); b1.textContent = "＋ Save place here";
-    const b2 = document.createElement("button"); b2.textContent = "⚑ Add tour stop here";
-    b1.onclick = ()=>{ map.closePopup(); openPlaceForm(null, lastTap.lat, lastTap.lng); };
-    b2.onclick = ()=>{ map.closePopup(); openStopForm(null, null, lastTap.lat, lastTap.lng); };
-    div.append(b1, b2);
-    L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
-  });
-  return true;
-}
-
+/* ================= map ================= */
 function drawMap(){
-  if(!map) return;
-  markerLayer.clearLayers(); tourLayer.clearLayers();
-  state.places.forEach(p=>{
-    L.circleMarker([p.lat, p.lng], {radius:9, color:"#fff", weight:2, fillColor:CAT_COLORS[p.cat]||"#5A6E77", fillOpacity:1})
-      .bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.cat)}`).addTo(markerLayer);
-  });
-  const day = state.tour.find(d=>d.id===shownDay);
-  if(day){
-    const pts = [];
-    day.stops.forEach((st,i)=>{
-      if(st.lat == null) return;
-      pts.push([st.lat, st.lng]);
-      L.marker([st.lat, st.lng], {icon: L.divIcon({className:"", html:`<div class="stopnum">${i+1}</div>`, iconSize:[24,24], iconAnchor:[12,12]})})
-        .bindPopup(`<b>${i+1}. ${esc(st.name)}</b>${st.time?"<br>🕐 "+esc(st.time):""}${st.note?"<br>"+esc(st.note):""}`)
-        .addTo(tourLayer);
-    });
-    if(pts.length > 1) L.polyline(pts, {color:"#0E7C7B", weight:3, dashArray:"6 6"}).addTo(tourLayer);
-    if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));
+  if(!window.L){ toast('الخريطة تحتاج إنترنت'); return; }
+  if(!map){
+    map=L.map('map').setView([33.31,44.36],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   }
+  if(layer) layer.remove();
+  layer=L.layerGroup().addTo(map);
+  const list=DATA.filter(c=>c.day===curDay), m=DMETA[curDay], pts=[];
+  for(const c of list){
+    pts.push([c.lat,c.lng]);
+    const done=visited(c);
+    const icon=L.divIcon({className:'numpin',html:`<div style="background:${done?'#1E7B4F':m.c}">${c.ord}</div>`,iconSize:[26,26],iconAnchor:[13,24]});
+    const p=phoneOf(c), w=waOf(c);
+    const pop=`<b>${c.ord}. ${c.n}</b><br><span style="color:#6B7683;font-size:11.5px">${c.st||c.d} · ${c.hr||''}</span>
+      <div class="acts">
+       ${p?`<a class="a-call" href="tel:${p.replace(/\s/g,'')}">📞</a>`:''}
+       ${w?`<a class="a-wa" href="https://wa.me/${w}" target="_blank">💬</a>`:''}
+       <a class="a-map" href="${c.g}" target="_blank">🗺️</a>
+       <a class="a-done" href="#" onclick="toggleV('${c.id}');return false;">${done?'✔':'☐'}</a>
+       <a class="a-ord" href="#" onclick="openOrderSheet('${c.id}');return false;">🛒</a>
+      </div>`;
+    L.marker([c.lat,c.lng],{icon}).bindPopup(pop).addTo(layer);
+  }
+  L.polyline(pts,{color:m.c,weight:3,opacity:.5,dashArray:'6 6'}).addTo(layer);
+  map.fitBounds(pts,{padding:[30,30]});
 }
 
-function renderMap(){
-  $("#mapTabs").innerHTML =
-    `<button class="chip ${mapSub==="places"?"sel":""}" data-m="places">📍 Places</button>
-     <button class="chip ${mapSub==="tour"?"sel":""}" data-m="tour">🧭 Tour plan</button>`;
-  $("#mapTabs").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{ mapSub=b.dataset.m; renderMap(); }));
-  if(ensureMap()) setTimeout(()=>{ map.invalidateSize(); drawMap(); }, 80);
-  renderMapPanel();
-}
+/* ================= overlay helpers ================= */
+function openOv(title, bodyHTML){ $('#ovTitle').textContent=title; $('#ovBody').innerHTML=bodyHTML; $('#ov').classList.add('show'); }
+function closeOv(){ $('#ov').classList.remove('show'); }
+window.closeOv=closeOv;
+$('#ov').addEventListener('click',e=>{ if(e.target.id==='ov') closeOv(); });
 
-function renderMapPanel(){
-  const v = $("#mapPanel");
-  if(mapSub === "places"){
-    let h = `<p class="muted" style="margin:2px 4px 12px">Tap anywhere on the map to save a place (lab, clinic, supplier…) or drop a tour stop.</p>
-    <button class="btn ghost" id="p-gps" style="margin-bottom:12px">📍 Add place at my location</button>`;
-    h += state.places.length ? state.places.map(p=>`
-      <div class="card" style="border-left:4px solid ${CAT_COLORS[p.cat]||"#5A6E77"}">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <b>${esc(p.name)}</b><span class="muted">${esc(p.cat)}</span>
-        </div>
-        ${p.notes ? `<div class="muted" style="margin-top:2px">${esc(p.notes)}</div>` : ""}
-        <div class="place-actions">
-          ${p.phone ? `<a class="act-wa" href="${waLink(p.phone,"")}" target="_blank" rel="noopener">WhatsApp</a>
-          <a class="act-call" href="tel:${esc(p.phone)}">Call</a>` : ""}
-          <a class="act-dir" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Directions</a>
-          <a class="act-call" href="#" data-edit="${p.id}">Edit</a>
-        </div>
-      </div>`).join("")
-      : `<div class="card empty">No saved places yet.</div>`;
-    v.innerHTML = h;
-    $("#p-gps").addEventListener("click", ()=>{
-      if(!navigator.geolocation){ toast("Location not available"); return; }
-      navigator.geolocation.getCurrentPosition(
-        pos=>openPlaceForm(null, +pos.coords.latitude.toFixed(6), +pos.coords.longitude.toFixed(6)),
-        ()=>toast("Couldn't get your location")
-      );
-    });
-    v.querySelectorAll("[data-edit]").forEach(a=>a.addEventListener("click", e=>{ e.preventDefault(); openPlaceForm(a.dataset.edit); }));
+/* ================= orders ================= */
+let draft=null;
+function openOrderSheet(cid){
+  draft={cid:cid||'', lines:[{pid:'',q:1,p:0}], disc:0, pay:0};
+  renderOrderSheet();
+}
+window.openOrderSheet=openOrderSheet;
+function renderOrderSheet(){
+  const opts=DATA.map(c=>`<option value="${c.id}" ${draft.cid===c.id?'selected':''}>${c.n} — ${c.d}</option>`).join('');
+  const prodOpts=pid=>['<option value="">— اختر مادة —</option>'].concat(S.products.map(p=>`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} (${fmt(p.pr)})</option>`)).join('');
+  const lines=draft.lines.map((l,i)=>`
+    <div class="oline">
+      <select onchange="draftProd(${i},this.value)">${prodOpts(l.pid)}</select>
+      <input class="q" type="number" min="1" value="${l.q}" onchange="draft.lines[${i}].q=+this.value||1;renderOrderSheet()">
+      <input class="p" type="number" min="0" value="${l.p}" onchange="draft.lines[${i}].p=+this.value||0;renderOrderSheet()" placeholder="سعر">
+      <button onclick="draft.lines.splice(${i},1);if(!draft.lines.length)draft.lines.push({pid:'',q:1,p:0});renderOrderSheet()">✕</button>
+    </div>`).join('');
+  const total=draft.lines.reduce((s,l)=>s+l.q*l.p,0)-(+draft.disc||0);
+  openOv('طلبية جديدة', `
+    <label>العيادة</label>
+    <select onchange="draft.cid=this.value"><option value="">— اختر العيادة —</option>${opts}</select>
+    <label>المواد</label>
+    ${lines}
+    <button class="mini" style="margin-top:7px" onclick="draft.lines.push({pid:'',q:1,p:0});renderOrderSheet()">＋ مادة أخرى</button>
+    <label>خصم (د.ع)</label>
+    <input type="number" min="0" value="${draft.disc}" onchange="draft.disc=+this.value||0;renderOrderSheet()">
+    <label>المدفوع الآن (د.ع)</label>
+    <input type="number" min="0" value="${draft.pay}" onchange="draft.pay=+this.value||0;renderOrderSheet()">
+    <div class="total"><span>الإجمالي</span><span>${fmt(total)} د.ع</span></div>
+    <div class="total" style="color:var(--bad)"><span>المتبقي (آجل)</span><span>${fmt(Math.max(0,total-(+draft.pay||0)))} د.ع</span></div>
+    <div class="btnrow">
+      <button style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="saveOrder()">💾 حفظ الطلبية</button>
+    </div>`);
+}
+function draftProd(i,pid){
+  draft.lines[i].pid=pid;
+  const p=S.products.find(x=>x.id===pid);
+  if(p && p.pr) draft.lines[i].p=p.pr;
+  renderOrderSheet();
+}
+window.draftProd=draftProd;
+function saveOrder(){
+  if(!draft.cid){ toast('اختر العيادة أولاً'); return; }
+  const lines=draft.lines.filter(l=>l.pid&&l.q>0).map(l=>{const p=S.products.find(x=>x.id===l.pid);return {pid:l.pid,n:p?p.n:'مادة',q:l.q,p:l.p};});
+  if(!lines.length){ toast('أضف مادة واحدة على الأقل'); return; }
+  const o={id:'o'+Date.now(), cid:draft.cid, date:today(), lines, disc:+draft.disc||0, payments: (+draft.pay>0)?[{d:today(),amt:+draft.pay}]:[]};
+  S.orders.unshift(o); persist(); closeOv(); rerender();
+  toast('حُفظت الطلبية 🧾');
+  setTimeout(()=>{ if(confirm('إرسال الفاتورة واتساب للعيادة؟')) waInvoice(o.id); }, 250);
+}
+window.saveOrder=saveOrder;
+function invoiceText(o){
+  const c=byId[o.cid], t=orderTotal(o), pd=orderPaid(o);
+  let s=`🧾 *فاتورة — ${S.cfg.office}*\n`;
+  s+=`العيادة: ${c.n}\nالتاريخ: ${o.date}\n———————\n`;
+  o.lines.forEach(l=>{ s+=`• ${l.n} × ${l.q} = ${fmt(l.q*l.p)} د.ع\n`; });
+  if(o.disc) s+=`خصم: -${fmt(o.disc)} د.ع\n`;
+  s+=`———————\n*الإجمالي: ${fmt(t)} د.ع*\nالمدفوع: ${fmt(pd)} د.ع\nالمتبقي: ${fmt(Math.max(0,t-pd))} د.ع\n\nشكراً لتعاملكم 🌹`;
+  return s;
+}
+function waInvoice(oid){
+  const o=S.orders.find(x=>x.id===oid); if(!o) return;
+  const c=byId[o.cid], w=waOf(c);
+  const url = w ? `https://wa.me/${w}?text=${encodeURIComponent(invoiceText(o))}` : `https://wa.me/?text=${encodeURIComponent(invoiceText(o))}`;
+  window.open(url,'_blank');
+}
+window.waInvoice=waInvoice;
+function addPayment(oid){
+  const v=prompt('مبلغ الدفعة (د.ع):'); const amt=+((v||'').replace(/\D/g,''));
+  if(!amt) return;
+  const o=S.orders.find(x=>x.id===oid);
+  o.payments=o.payments||[]; o.payments.push({d:today(),amt});
+  persist(); rerender(); toast('سُجّلت الدفعة ✔');
+}
+window.addPayment=addPayment;
+function delOrder(oid){
+  if(!confirm('حذف هذه الطلبية نهائياً؟')) return;
+  S.orders=S.orders.filter(o=>o.id!==oid); persist(); rerender();
+}
+window.delOrder=delOrder;
+function orderRow(o){
+  const c=byId[o.cid], t=orderTotal(o), pd=orderPaid(o), rem=Math.max(0,t-pd);
+  return `<div class="row"><div class="l"><b>${c.n}</b><span>${o.date} · ${o.lines.length} مادة${o.disc?' · خصم '+fmt(o.disc):''}</span></div>
+    <div style="text-align:left"><div class="amt">${fmt(t)}</div><div class="amt ${rem>0?'red':'grn'}" style="font-size:11px">${rem>0?('باقي '+fmt(rem)):'مسدَّدة ✔'}</div></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <button class="mini" onclick="waInvoice('${o.id}')">💬 فاتورة</button>
+      ${rem>0?`<button class="mini" onclick="addPayment('${o.id}')">＋ دفعة</button>`:''}
+      <button class="mini" style="color:var(--bad)" onclick="delOrder('${o.id}')">حذف</button>
+    </div></div>`;
+}
+function showClinicOrders(cid){
+  const list=S.orders.filter(o=>o.cid===cid);
+  openOv('طلبيات '+byId[cid].n, list.map(orderRow).join('')||'<div class="empty">لا طلبيات</div>');
+}
+window.showClinicOrders=showClinicOrders;
+
+/* ================= sales tab ================= */
+function salesTab(t,btn){ curSales=t; document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderSales(); }
+window.salesTab=salesTab;
+function renderSales(){
+  const box=$('#salesBox');
+  if(curSales==='orders'){
+    const m=today().slice(0,7);
+    const mo=S.orders.filter(o=>o.date.startsWith(m));
+    box.innerHTML=`
+      <div class="sec" style="text-align:center">
+        <div class="bignum">${fmt(monthSales())}</div>
+        <div style="color:var(--mut);font-size:12px">د.ع مبيعات هذا الشهر · ${mo.length} طلبية</div>
+      </div>
+      <div class="sec"><h3>آخر الطلبيات</h3>${S.orders.slice(0,40).map(orderRow).join('')||'<div class="empty">لا طلبيات بعد — اضغط «＋ طلبية»</div>'}</div>`;
   } else {
-    let h = `<button class="btn ghost" id="t-addday" style="margin-bottom:12px">+ Add day</button>`;
-    h += state.tour.length ? state.tour.map((d,di)=>`
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <b>Day ${di+1} — ${esc(d.title)}</b>
-          <span style="white-space:nowrap">
-            <button class="chip ${shownDay===d.id?"sel":""}" data-show="${d.id}" style="box-shadow:none">Map</button>
-            <button class="chip" data-editday="${d.id}" style="box-shadow:none">Edit</button>
-          </span>
-        </div>
-        ${d.stops.map((st,i)=>`<div class="tour-stop" data-stop="${d.id}:${st.id}">
-          <span class="n">${i+1}</span>
-          <span style="flex:1"><b>${esc(st.name)}</b>${st.time?` · <span class="muted">${esc(st.time)}</span>`:""}${st.note?`<br><span class="muted">${esc(st.note)}</span>`:""}</span>
-          ${st.lat!=null?"📍":""}</div>`).join("") || `<div class="muted" style="margin-top:6px">No stops yet.</div>`}
-        <div style="margin-top:10px"><button class="chip" data-addstop="${d.id}" style="box-shadow:none">＋ Add stop${lastTap?" (at tapped point)":""}</button></div>
-      </div>`).join("")
-      : `<div class="card empty">No tour days yet. Add Day 1, then tap the map to drop numbered stops — the route draws itself.</div>`;
-    v.innerHTML = h;
-    $("#t-addday").addEventListener("click", ()=>openDayForm(null));
-    v.querySelectorAll("[data-show]").forEach(b=>b.addEventListener("click",()=>{ shownDay = shownDay===b.dataset.show ? null : b.dataset.show; drawMap(); renderMapPanel(); }));
-    v.querySelectorAll("[data-editday]").forEach(b=>b.addEventListener("click",()=>openDayForm(b.dataset.editday)));
-    v.querySelectorAll("[data-addstop]").forEach(b=>b.addEventListener("click",()=>openStopForm(b.dataset.addstop, null, lastTap?lastTap.lat:null, lastTap?lastTap.lng:null)));
-    v.querySelectorAll("[data-stop]").forEach(el=>el.addEventListener("click",()=>{ const [d,s]=el.dataset.stop.split(":"); openStopForm(d, s); }));
+    box.innerHTML=`
+      <div class="sec"><h3>موادّي وأسعاري</h3>
+      <div style="font-size:11.5px;color:var(--mut);margin-bottom:4px">حدّث الأسعار هنا وستُقترح تلقائياً عند إنشاء الطلبيات.</div>
+      ${S.products.map(p=>`
+        <div class="oline">
+          <input style="flex:2.2" value="${p.n.replace(/"/g,'&quot;')}" onchange="p_ed('${p.id}','n',this.value)">
+          <input style="flex:1" value="${p.u}" onchange="p_ed('${p.id}','u',this.value)">
+          <input style="flex:1.2" type="number" min="0" value="${p.pr}" placeholder="سعر" onchange="p_ed('${p.id}','pr',+this.value||0)">
+          <button onclick="p_del('${p.id}')">✕</button>
+        </div>`).join('')}
+      <button class="mini" style="margin-top:8px" onclick="p_add()">＋ إضافة مادة</button></div>`;
   }
 }
+function p_ed(id,k,v){ const p=S.products.find(x=>x.id===id); if(p){ p[k]=v; persist(); } }
+function p_add(){ S.products.push({id:'p'+Date.now(),n:'مادة جديدة',u:'قطعة',pr:0}); persist(); renderSales(); }
+function p_del(id){ if(confirm('حذف المادة؟')){ S.products=S.products.filter(p=>p.id!==id); persist(); renderSales(); } }
+window.p_ed=p_ed; window.p_add=p_add; window.p_del=p_del;
 
-function openPlaceForm(id, lat, lng){
-  const p = id ? state.places.find(x=>x.id===id) : null;
-  const s = p || {name:"", cat:PLACE_CATS[0], phone:"", notes:"", lat, lng};
-  openSheet(`
-    <h2>${p ? "Edit place" : "Save place"}</h2>
-    <label>Name</label><input id="pl-name" value="${esc(s.name)}" placeholder="e.g. Zanko Dental Lab">
-    <label>Category</label><select id="pl-cat">${PLACE_CATS.map(c=>`<option ${c===s.cat?"selected":""}>${c}</option>`).join("")}</select>
-    <label>Phone / WhatsApp</label><input id="pl-phone" inputmode="tel" value="${esc(s.phone)}" placeholder="e.g. 0750 123 4567">
-    <label>Notes</label><textarea id="pl-notes" rows="2" placeholder="Prices, working hours, who to ask for…">${esc(s.notes)}</textarea>
-    <p class="muted" style="margin-top:8px">📌 ${(+s.lat).toFixed(4)}, ${(+s.lng).toFixed(4)}</p>
-    <div style="height:10px"></div>
-    <button class="btn" id="pl-save">${p ? "Save" : "Save place"}</button>
-    ${p ? `<div style="height:8px"></div><button class="btn danger" id="pl-del">Delete place</button>` : ""}
-  `);
-  $("#pl-save").addEventListener("click",()=>{
-    const name = $("#pl-name").value.trim();
-    if(!name){ toast("Add a name"); return; }
-    const data = {name, cat:$("#pl-cat").value, phone:$("#pl-phone").value.trim(), notes:$("#pl-notes").value.trim(), lat:+s.lat, lng:+s.lng};
-    if(p) Object.assign(p, data); else state.places.push({id:cid(), ...data});
-    save(); closeSheet(); drawMap(); renderMapPanel(); toast("Place saved");
-  });
-  if(p) $("#pl-del").addEventListener("click",()=>{
-    if(!confirm("Delete this place?")) return;
-    state.places = state.places.filter(x=>x.id!==p.id);
-    save(); closeSheet(); drawMap(); renderMapPanel();
-  });
+/* ================= follow-ups ================= */
+function openFuSheet(cid){
+  const r=rec(cid), f=r.fu||{};
+  openOv('متابعة — '+byId[cid].n, `
+    <label>تاريخ المتابعة</label>
+    <input type="date" id="fuDate" value="${f.date||''}">
+    <label>سبب المتابعة</label>
+    <input id="fuNote" value="${(f.note||'').replace(/"/g,'&quot;')}" placeholder="تسليم طلب، تحصيل، عرض جديد…">
+    <div class="btnrow">
+      <button style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="saveFu('${cid}')">💾 حفظ</button>
+      ${f.date?`<button onclick="saveC('${cid}',{fu:null});closeOv();rerender()">إلغاء المتابعة</button>`:''}
+    </div>`);
+}
+window.openFuSheet=openFuSheet;
+function saveFu(cid){
+  const d=$('#fuDate').value;
+  if(!d){ toast('اختر التاريخ'); return; }
+  saveC(cid,{fu:{date:d, note:$('#fuNote').value}});
+  closeOv(); rerender(); toast('⏰ ضُبطت المتابعة');
+}
+window.saveFu=saveFu;
+
+/* ================= templates ================= */
+function openTplSheet(cid){
+  const c=byId[cid], r=rec(cid), who=r.who?(' '+r.who):'';
+  const debt=clinicDebt(cid);
+  const T=[
+    ['تعريف بالمكتب', `السلام عليكم${who} 🌹\nمعكم مندوب ${S.cfg.office} لمواد طب الأسنان.\nنجهّز عيادة ${c.n} بجميع المواد بأسعار منافسة وتوصيل مجاني.\nيسعدنا خدمتكم — دتشرفون.`],
+    ['عرض أسعار', `السلام عليكم${who} 🌹\nعندنا هذا الأسبوع عروض خاصة على المواد الاستهلاكية (كومبوزت، بنج، قفازات…).\nأمرّ عليكم بالعيادة أو أدزلكم قائمة الأسعار؟`],
+    ['تذكير موعد', `السلام عليكم${who}، حاب أأكد موعد زيارتي لعيادة ${c.n}. شوكت يناسبكم اليوم؟ 🙏`],
+    ['تذكير دفعة', `السلام عليكم${who} 🌹\nتحية طيبة — تذكير لطيف بالمبلغ المتبقي بذمة العيادة${debt>0?` (${fmt(debt)} د.ع)`:''}.\nأگدر أمر أستلم بأي وقت يناسبكم. شكراً لتعاملكم الدائم.`],
+    ['شكر بعد الطلب', `شكراً لطلبكم من ${S.cfg.office} 🌹 أي ملاحظة على المواد آني بالخدمة، وموعد التجهيز القادم حاضرين.`],
+  ];
+  const w=waOf(c);
+  openOv('قوالب واتساب — '+c.n, T.map(t=>`
+    <div class="sec"><b style="font-size:12.5px">${t[0]}</b>
+      <div style="font-size:11.5px;color:var(--mut);white-space:pre-wrap;margin:5px 0">${t[1]}</div>
+      <button class="mini" onclick="window.open('https://wa.me/${w}?text='+encodeURIComponent(\`${t[1].replace(/`/g,'')}\`),'_blank')">💬 إرسال</button>
+    </div>`).join(''));
+}
+window.openTplSheet=openTplSheet;
+
+/* ================= money tab ================= */
+function renderMoney(){
+  const debts=DATA.map(c=>({c,d:clinicDebt(c.id)})).filter(x=>x.d>0).sort((a,b)=>b.d-a.d);
+  const due=fuDue();
+  const upcoming=DATA.filter(c=>{const f=rec(c.id).fu; return f&&f.date&&f.date>today();}).sort((a,b)=>rec(a.id).fu.date<rec(b.id).fu.date?-1:1);
+  $('#moneyBox').innerHTML=`
+   <div class="sec" style="text-align:center">
+     <div class="bignum" style="color:${debts.length?'var(--bad)':'var(--ok)'}">${fmt(totalDebt())}</div>
+     <div style="color:var(--mut);font-size:12px">د.ع إجمالي الذمم على ${debts.length} عيادة</div>
+   </div>
+   <div class="sec"><h3>⏰ متابعات اليوم والمتأخرة (${due.length})</h3>
+     ${due.map(c=>{const f=rec(c.id).fu;return `<div class="row"><div class="l"><b>${c.n}</b><span>${f.date}${f.note?' — '+f.note:''}</span></div>
+       <div style="display:flex;gap:4px"><button class="mini" onclick="openFuSheet('${c.id}')">تعديل</button>
+       <button class="mini grn" onclick="saveC('${c.id}',{fu:null});rerender()">تمت ✔</button></div></div>`;}).join('')||'<div class="empty">لا متابعات مستحقة 🎉</div>'}
+   </div>
+   ${upcoming.length?`<div class="sec"><h3>متابعات قادمة</h3>${upcoming.slice(0,15).map(c=>{const f=rec(c.id).fu;return `<div class="row"><div class="l"><b>${c.n}</b><span>${f.date}${f.note?' — '+f.note:''}</span></div></div>`;}).join('')}</div>`:''}
+   <div class="sec"><h3>💰 الذمم حسب العيادة</h3>
+     ${debts.map(x=>{const w=waOf(x.c);return `<div class="row"><div class="l"><b>${x.c.n}</b><span>${x.c.d}</span></div>
+       <span class="amt red">${fmt(x.d)}</span>
+       <div style="display:flex;flex-direction:column;gap:4px">
+         <button class="mini" onclick="showClinicOrders('${x.c.id}')">🧾</button>
+         ${w?`<button class="mini" onclick="openTplSheet('${x.c.id}')">💬 تذكير</button>`:''}
+       </div></div>`;}).join('')||'<div class="empty">لا ذمم — كل الحسابات مسدَّدة ✔</div>'}
+   </div>`;
 }
 
-function openDayForm(id){
-  const d = id ? state.tour.find(x=>x.id===id) : null;
-  openSheet(`
-    <h2>${d ? "Edit day" : "New tour day"}</h2>
-    <label>Day title</label><input id="d-title" value="${esc(d?d.title:"")}" placeholder="e.g. Citadel & old bazaar">
-    <div style="height:14px"></div>
-    <button class="btn" id="d-save">${d ? "Save" : "Add day"}</button>
-    ${d ? `<div style="height:8px"></div><button class="btn danger" id="d-del">Delete day & its stops</button>` : ""}
-  `);
-  $("#d-save").addEventListener("click",()=>{
-    const title = $("#d-title").value.trim() || "Untitled day";
-    if(d) d.title = title; else state.tour.push({id:cid(), title, stops:[]});
-    save(); closeSheet(); renderMapPanel(); toast("Saved");
-  });
-  if(d) $("#d-del").addEventListener("click",()=>{
-    if(!confirm("Delete this day and all its stops?")) return;
-    state.tour = state.tour.filter(x=>x.id!==d.id);
-    if(shownDay===d.id) shownDay = null;
-    save(); closeSheet(); drawMap(); renderMapPanel();
-  });
+/* ================= stats ================= */
+function renderStats(){
+  const done=DATA.filter(visited).length, noPhone=DATA.filter(c=>!phoneOf(c)).length;
+  let dayBars='';
+  for(const d of Object.keys(DMETA)){
+    const l=DATA.filter(c=>c.day===d), v=l.filter(visited).length, pc=l.length?100*v/l.length:0;
+    dayBars+=`<div class="bar"><span class="lb">يوم ${d} · ${DMETA[d].w}</span><span class="tk"><i style="width:${pc}%;background:${DMETA[d].c}"></i></span><span class="vl">${v}/${l.length}</span></div>`;
+  }
+  const sales={}; S.orders.forEach(o=>{sales[o.cid]=(sales[o.cid]||0)+orderTotal(o);});
+  const top=Object.entries(sales).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('#statsBox').innerHTML=`
+   <div class="sec" style="display:flex;text-align:center">
+     <div style="flex:1"><div class="bignum">${(100*done/DATA.length).toFixed(0)}%</div><div style="font-size:11px;color:var(--mut)">تغطية الزيارات</div></div>
+     <div style="flex:1"><div class="bignum">${fmt(monthSales()/1000)}k</div><div style="font-size:11px;color:var(--mut)">مبيعات الشهر د.ع</div></div>
+     <div style="flex:1"><div class="bignum">${S.orders.length}</div><div style="font-size:11px;color:var(--mut)">إجمالي الطلبيات</div></div>
+   </div>
+   <div class="sec"><h3>تقدّم الأيام</h3>${dayBars}</div>
+   ${top.length?`<div class="sec"><h3>🏆 أفضل الزبائن مبيعاً</h3>${top.map(([cid,v],i)=>`<div class="row"><div class="l"><b>${i+1}. ${byId[cid].n}</b></div><span class="amt grn">${fmt(v)} د.ع</span></div>`).join('')}</div>`:''}
+   <div class="sec"><h3>⚙️ إعدادات</h3>
+     <label style="font-size:11.5px;color:var(--mut)">اسم مكتبك (يظهر في الفواتير والرسائل)</label>
+     <input value="${S.cfg.office}" onchange="S.cfg.office=this.value;persist();toast('حُفظ')" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:9px;font-family:inherit;margin-top:5px">
+     <div style="font-size:11.5px;color:var(--mut);margin-top:8px">${noPhone} عيادة ما زالت بدون رقم — استخدم فلتر «بدون رقم» واسأل عند الزيارة.</div>
+   </div>
+   <div class="sec"><h3>نسخة احتياطية وتقارير</h3>
+     <div style="font-size:11.5px;color:var(--mut)">بياناتك محفوظة على هذا الجهاز فقط — صدّر نسخة أسبوعياً.</div>
+     <div class="btnrow">
+       <button onclick="exportB()">⬇ نسخة احتياطية</button>
+       <button onclick="importB()">⬆ استيراد</button>
+       <button onclick="exportCSV()">📄 تقرير CSV</button>
+       <button style="color:var(--bad)" onclick="if(confirm('حذف كل البيانات (زيارات، طلبيات، ذمم)؟')){localStorage.removeItem('kdental2');location.reload();}">↺ تصفير</button>
+     </div>
+   </div>`;
 }
-
-function openStopForm(dayId, stopId, lat, lng){
-  let day = dayId ? state.tour.find(x=>x.id===dayId) : null;
-  const st = (day && stopId) ? day.stops.find(x=>x.id===stopId) : null;
-  const s = st || {name:"", time:"", note:"", lat:(lat??null), lng:(lng??null)};
-  const daySelect = !st && !dayId
-    ? `<label>Which day?</label><select id="st-day">${state.tour.map((d,i)=>`<option value="${d.id}">Day ${i+1} — ${esc(d.title)}</option>`).join("")}<option value="__new">＋ New day</option></select>`
-    : "";
-  openSheet(`
-    <h2>${st ? "Edit stop" : "Add tour stop"}</h2>
-    ${daySelect}
-    <label>Stop name</label><input id="st-name" value="${esc(s.name)}" placeholder="e.g. Erbil Citadel">
-    <div class="row2">
-      <div><label>Time</label><input id="st-time" value="${esc(s.time)}" placeholder="e.g. 10:00 AM"></div>
-      <div><label>Note</label><input id="st-note" value="${esc(s.note)}" placeholder="e.g. buy tickets"></div>
-    </div>
-    <p class="muted" style="margin-top:8px">${s.lat!=null ? "📌 Pinned at "+(+s.lat).toFixed(4)+", "+(+s.lng).toFixed(4) : "No pin — tap the map first to place this stop, or save without one."}</p>
-    <div style="height:10px"></div>
-    <button class="btn" id="st-save">${st ? "Save" : "Add stop"}</button>
-    ${st ? `<div style="height:8px"></div><button class="btn danger" id="st-del">Delete stop</button>` : ""}
-  `);
-  $("#st-save").addEventListener("click",()=>{
-    const name = $("#st-name").value.trim();
-    if(!name){ toast("Give the stop a name"); return; }
-    if(!st && !day){
-      const sel = $("#st-day");
-      if(sel && sel.value !== "__new") day = state.tour.find(x=>x.id===sel.value);
-      if(!day){ day = {id:cid(), title:"Day "+(state.tour.length+1), stops:[]}; state.tour.push(day); }
-    }
-    const data = {name, time:$("#st-time").value.trim(), note:$("#st-note").value.trim(), lat:s.lat, lng:s.lng};
-    if(st) Object.assign(st, data); else day.stops.push({id:cid(), ...data});
-    save(); closeSheet();
-    if(!st){ shownDay = day.id; mapSub = "tour"; }
-    drawMap(); renderMapPanel(); toast("Stop saved");
-  });
-  if(st) $("#st-del").addEventListener("click",()=>{
-    if(!confirm("Delete this stop?")) return;
-    day.stops = day.stops.filter(x=>x.id!==st.id);
-    save(); closeSheet(); drawMap(); renderMapPanel();
-  });
+function exportB(){
+  const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='dental-rep-backup-'+today()+'.json'; a.click(); toast('صُدّرت النسخة ⬇');
 }
+function importB(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=e=>{const f=e.target.files[0],r=new FileReader();
+    r.onload=()=>{try{S=JSON.parse(r.result);persist();rerender();toast('تم الاستيراد ✔');}catch(err){toast('ملف غير صالح');}};
+    r.readAsText(f);};
+  inp.click();
+}
+function exportCSV(){
+  let csv='\uFEFFالعيادة,المنطقة,اليوم,الهاتف,التصنيف,زيارة,تاريخ الزيارة,جهة الاتصال,مبيعات,ذمة,ملاحظات\n';
+  for(const c of DATA){
+    const r=rec(c.id);
+    const sales=S.orders.filter(o=>o.cid===c.id).reduce((s,o)=>s+orderTotal(o),0);
+    csv+=[c.n,c.d,c.day,phoneOf(c)||'',r.lead||'',r.v?'تمت':'',r.date||'',r.who||'',sales,clinicDebt(c.id),(r.note||'').replace(/[,\n]/g,' ')].map(x=>`"${x}"`).join(',')+'\n';
+  }
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='dental-rep-report-'+today()+'.csv'; a.click(); toast('صُدّر التقرير 📄');
+}
+window.exportB=exportB; window.importB=importB; window.exportCSV=exportCSV;
 
-/* ---------------- Settings / backup ---------------- */
-$("#btnSettings").addEventListener("click",()=>{
-  openSheet(`
-    <h2>Backup & settings</h2>
-    <p class="muted">Data lives on this device only. Export a backup before clearing your browser or switching phones.</p>
-    <div style="height:10px"></div>
-    <button class="btn" id="s-export">Export backup (.json)</button>
-    <div style="height:8px"></div>
-    <button class="btn ghost" id="s-import">Import backup</button>
-    <input type="file" id="s-file" accept="application/json" style="display:none">
-    <div style="height:8px"></div>
-    <button class="btn ghost" id="s-resetq">Reset quota counts to 0</button>
-    <div style="height:8px"></div>
-    <button class="btn danger" id="s-wipe">Erase all data</button>
-    <p class="muted" style="text-align:center;margin-top:14px">DentLab · ${state.cases.length} cases · ${state.quota.length} requirements</p>
-  `);
-  $("#s-export").addEventListener("click",()=>{
-    const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "dentlab-backup-" + todayISO() + ".json";
-    a.click(); URL.revokeObjectURL(a.href);
-    toast("Backup downloaded");
-  });
-  $("#s-import").addEventListener("click",()=>$("#s-file").click());
-  $("#s-file").addEventListener("change",e=>{
-    const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader();
-    r.onload = ()=>{ try{
-      const s = JSON.parse(r.result);
-      if(!s || !Array.isArray(s.cases) || !Array.isArray(s.quota)) throw 0;
-      s.places = s.places || []; s.tour = s.tour || [];
-      state = s; save(); closeSheet(); renderTabs(); toast("Backup restored");
-    }catch(_){ toast("That file isn't a DentLab backup"); } };
-    r.readAsText(f);
-  });
-  $("#s-resetq").addEventListener("click",()=>{
-    if(!confirm("Set all requirement counts back to 0?")) return;
-    state.quota.forEach(q=>q.done=0); save(); closeSheet(); renderTabs(); toast("Quota reset");
-  });
-  $("#s-wipe").addEventListener("click",()=>{
-    if(!confirm("Erase ALL cases and requirements? Export a backup first if unsure.")) return;
-    state = { cases:[], quota: DEFAULT_QUOTA.map(q=>({...q, id:qid()})) };
-    save(); closeSheet(); renderTabs(); toast("All data erased");
-  });
+/* ================= tabs ================= */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); curView=b.dataset.v;
+    ['Day','Map','All','Sales','Money','Stats'].forEach(v=>$('#view'+v).classList.toggle('hide',v!==curView));
+    $('#fabOrder').classList.toggle('hide', curView!=='Sales');
+    if(curView==='Map'){setTimeout(()=>{drawMap();map&&map.invalidateSize();},50);}
+    if(curView==='Sales') renderSales();
+    if(curView==='Money') renderMoney();
+    if(curView==='Stats') renderStats();
+  };
 });
-
-/* ---------------- Sheet plumbing ---------------- */
-function openSheet(html){
-  $("#sheet").innerHTML = `<div class="grab"></div>` + html;
-  $("#overlay").classList.add("show");
-  requestAnimationFrame(()=>$("#sheet").classList.add("show"));
-}
-function closeSheet(){
-  $("#sheet").classList.remove("show");
-  $("#overlay").classList.remove("show");
-}
-$("#overlay").addEventListener("click", closeSheet);
-
-/* ---------------- Boot ---------------- */
-$("#fab").addEventListener("click",()=>openCaseForm(null));
-$("#hdrDate").textContent = new Date().toLocaleDateString(undefined,{weekday:"long", day:"numeric", month:"long"});
-renderTabs();
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
+$('#q').addEventListener('input',renderAllList);
+buildChips(); buildFilters(); render();
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 </script>
 </body>
