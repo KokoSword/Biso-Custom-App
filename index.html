@@ -1,841 +1,940 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="parchment" data-text-size="medium">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oral Surgery — 4th Stage Quiz</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E7C7B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>DentLab</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-  /* ===== THEMES ===== */
-  :root, [data-theme="parchment"] {
-    --bg: #f4efe4;
-    --surface: #faf7f0;
-    --surface2: #ebe4d4;
-    --border: #c8bda8;
-    --accent: #7a2038;
-    --accent2: #5c4a32;
-    --danger: #9b2c2c;
-    --success: #2d6a4f;
-    --text: #2a2218;
-    --muted: #6b5f4a;
-    --header-bg: #ebe4d4;
-    --btn-text: #faf7f0;
-    --shadow: rgba(42, 34, 24, 0.08);
-    --card-r: 4px;
-  }
-
-  [data-theme="navy"] {
-    --bg: #eef2f7;
-    --surface: #ffffff;
-    --surface2: #dce4ef;
-    --border: #a8b8cc;
-    --accent: #1a3a5c;
-    --accent2: #2a5080;
-    --danger: #a83232;
-    --success: #1e6b4a;
-    --text: #152535;
-    --muted: #5a6d82;
-    --header-bg: #dce4ef;
-    --btn-text: #ffffff;
-    --shadow: rgba(21, 37, 53, 0.1);
-  }
-
-  [data-theme="forest"] {
-    --bg: #edf3ed;
-    --surface: #f7faf7;
-    --surface2: #d8e6d8;
-    --border: #a8c4a8;
-    --accent: #2d5c3e;
-    --accent2: #4a7c59;
-    --danger: #8b3a3a;
-    --success: #1f5c38;
-    --text: #1a2e1f;
-    --muted: #4d6b52;
-    --header-bg: #d8e6d8;
-    --btn-text: #f7faf7;
-    --shadow: rgba(26, 46, 31, 0.08);
-  }
-
-  [data-theme="slate"] {
-    --bg: #2c2f34;
-    --surface: #363a40;
-    --surface2: #40454c;
-    --border: #525862;
-    --accent: #9eb4c8;
-    --accent2: #b8c8d4;
-    --danger: #d49191;
-    --success: #8fbf9f;
-    --text: #e2e6eb;
-    --muted: #a0a8b3;
-    --header-bg: #32363c;
-    --btn-text: #f2f4f7;
-    --shadow: rgba(0, 0, 0, 0.25);
-    --card-r: 4px;
-  }
-
-  /* ===== TEXT SIZE ===== */
-  html { --text-scale: 1; }
-  html[data-text-size="small"] { --text-scale: 0.92; }
-  html[data-text-size="medium"] { --text-scale: 1; }
-  html[data-text-size="large"] { --text-scale: 1.18; }
-  html[data-text-size="xlarge"] { --text-scale: 1.38; }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-    font-size: calc(1rem * var(--text-scale));
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  #app { max-width: 900px; margin: 0 auto; }
-
-  h1, h2, .q-text, .big-score, .review-title {
-    font-family: 'Libre Baskerville', Georgia, serif;
-  }
-
-  /* ===== SETUP ===== */
-  #setup-screen {
-    min-height: 100vh;
-    padding: 48px 24px 64px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .classic-header {
-    text-align: center;
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 24px;
-    margin-bottom: 36px;
-    width: 100%;
-    max-width: 560px;
-  }
-
-  .institution {
-    font-size: calc(0.75rem * var(--text-scale));
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
-  h1 {
-    font-size: calc(2rem * var(--text-scale));
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1.25;
-    margin-bottom: 8px;
-  }
-
-  .subtitle {
-    color: var(--muted);
-    font-size: calc(0.95rem * var(--text-scale));
-    font-style: italic;
-  }
-
-  .setup-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    box-shadow: 0 2px 12px var(--shadow);
-    padding: 32px;
-    width: 100%;
-    max-width: 640px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .field label {
-    display: block;
-    font-size: calc(0.72rem * var(--text-scale));
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-
-  .field-hint {
-    font-size: calc(0.82rem * var(--text-scale));
-    color: var(--muted);
-    margin-top: 6px;
-    font-style: italic;
-  }
-
-  .btn-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .btn-group.three-col { grid-template-columns: 1fr 1fr 1fr; }
-  .btn-group.four-col { grid-template-columns: repeat(4, 1fr); }
-  .btn-group.theme-grid { grid-template-columns: 1fr 1fr; }
-
-  .mode-btn, .theme-btn, .size-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 12px 14px;
-    color: var(--muted);
-    font-family: inherit;
-    font-size: calc(0.88rem * var(--text-scale));
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, color 0.15s;
-    text-align: center;
-  }
-
-  .mode-btn:hover, .theme-btn:hover, .size-btn:hover {
-    border-color: var(--accent);
-    color: var(--text);
-  }
-
-  .mode-btn.active, .theme-btn.active, .size-btn.active {
-    border-color: var(--accent);
-    background: var(--surface);
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .theme-btn .swatch {
-    display: block;
-    width: 100%;
-    height: 6px;
-    border-radius: 2px;
-    margin-bottom: 6px;
-  }
-
-  .theme-btn[data-theme-id="parchment"] .swatch { background: linear-gradient(90deg, #f4efe4, #7a2038); }
-  .theme-btn[data-theme-id="navy"] .swatch { background: linear-gradient(90deg, #eef2f7, #1a3a5c); }
-  .theme-btn[data-theme-id="forest"] .swatch { background: linear-gradient(90deg, #edf3ed, #2d5c3e); }
-  .theme-btn[data-theme-id="slate"] .swatch { background: linear-gradient(90deg, #2c2f34, #9eb4c8); }
-
-  .count-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .preset-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 8px 14px;
-    color: var(--muted);
-    font-family: inherit;
-    font-size: calc(0.85rem * var(--text-scale));
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .preset-btn:hover { border-color: var(--accent); color: var(--text); }
-  .preset-btn.active {
-    border-color: var(--accent);
-    background: var(--surface);
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .custom-input-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-  }
-
-  .custom-input-wrap input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: calc(0.9rem * var(--text-scale));
-    width: 100px;
-    outline: none;
-  }
-
-  .custom-input-wrap input:focus { border-color: var(--accent); }
-  .custom-input-wrap span { color: var(--muted); font-size: calc(0.85rem * var(--text-scale)); }
-
-  .lecture-range-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-
-  .lecture-range-row label {
-    font-size: calc(0.85rem * var(--text-scale));
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--muted);
-    margin: 0;
-    font-weight: 400;
-  }
-
-  .lecture-range-row select {
-    flex: 1;
-    min-width: 120px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: calc(0.88rem * var(--text-scale));
-  }
-
-  .lecture-range-row select:focus { border-color: var(--accent); outline: none; }
-
-  .lecture-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-  }
-
-  .lecture-details {
-    margin-top: 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 0;
-    background: var(--surface2);
-  }
-
-  .lecture-details summary {
-    padding: 12px 14px;
-    cursor: pointer;
-    font-size: calc(0.88rem * var(--text-scale));
-    color: var(--accent);
-    font-weight: 600;
-    list-style: none;
-  }
-
-  .lecture-details summary::-webkit-details-marker { display: none; }
-
-  .lecture-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 0 14px 14px;
-    border-top: 1px solid var(--border);
-  }
-
-  .lecture-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: calc(0.82rem * var(--text-scale));
-    color: var(--text);
-    cursor: pointer;
-    line-height: 1.35;
-  }
-
-  .lecture-check input {
-    margin-top: 3px;
-    flex-shrink: 0;
-    accent-color: var(--accent);
-  }
-
-  .lecture-check .lec-count {
-    color: var(--muted);
-    margin-left: auto;
-    white-space: nowrap;
-  }
-
-  .start-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: var(--card-r);
-    color: var(--btn-text);
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-size: calc(1.05rem * var(--text-scale));
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    margin-top: 4px;
-  }
-
-  .start-btn:hover { opacity: 0.9; }
-
-  .total-note {
-    text-align: center;
-    font-size: calc(0.85rem * var(--text-scale));
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-    padding-top: 16px;
-  }
-
-  /* ===== QUIZ ===== */
-  #quiz-screen { display: none; min-height: 100vh; }
-
-  .quiz-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--header-bg);
-    border-bottom: 2px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-
-  .progress-wrap { flex: 1; min-width: 180px; }
-  .progress-label {
-    font-size: calc(0.75rem * var(--text-scale));
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-
-  .progress-bar-bg {
-    height: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.35s ease;
-  }
-
-  .score-pill {
-    font-size: calc(0.8rem * var(--text-scale));
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
-  .score-pill.hidden { visibility: hidden; }
-  .score-c { color: var(--success); margin-right: 10px; }
-  .score-w { color: var(--danger); }
-
-  .quit-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    color: var(--muted);
-    font-family: inherit;
-    font-size: calc(0.82rem * var(--text-scale));
-    cursor: pointer;
-  }
-
-  .quit-btn:hover { color: var(--danger); border-color: var(--danger); }
-
-  .question-outer {
-    padding: 36px 24px 80px;
-  }
-
-  .q-number {
-    font-size: calc(0.75rem * var(--text-scale));
-    color: var(--accent);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    font-weight: 600;
-  }
-
-  .q-text {
-    font-size: calc(1.2rem * var(--text-scale));
-    font-weight: 700;
-    line-height: 1.55;
-    margin-bottom: 28px;
-    color: var(--text);
-  }
-
-  .options-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-
-  .option-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 14px 18px;
-    text-align: left;
-    color: var(--text);
-    font-family: inherit;
-    font-size: calc(1rem * var(--text-scale));
-    line-height: 1.5;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    width: 100%;
-  }
-
-  .option-btn:hover:not(:disabled) {
-    border-color: var(--accent);
-    background: var(--surface2);
-  }
-
-  .option-btn:disabled { cursor: default; }
-
-  .opt-letter {
-    font-weight: 700;
-    color: var(--accent);
-    min-width: 26px;
-    flex-shrink: 0;
-  }
-
-  .option-btn.selected {
-    border-color: var(--accent);
-    background: var(--surface2);
-    font-weight: 600;
-  }
-
-  .option-btn.correct {
-    border-color: var(--success);
-    background: color-mix(in srgb, var(--success) 12%, var(--surface));
-  }
-
-  .option-btn.correct .opt-letter { color: var(--success); }
-
-  .option-btn.wrong {
-    border-color: var(--danger);
-    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
-  }
-
-  .option-btn.wrong .opt-letter { color: var(--danger); }
-
-  .option-btn.reveal {
-    border-color: var(--success);
-    opacity: 0.85;
-  }
-
-  .feedback-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 14px 18px;
-    font-size: calc(0.95rem * var(--text-scale));
-    display: none;
-    margin-bottom: 20px;
-  }
-
-  .feedback-box.show { display: block; }
-  .feedback-box.correct-fb { border-color: var(--success); color: var(--success); }
-  .feedback-box.wrong-fb { border-color: var(--danger); color: var(--danger); }
-
-  .nav-row { display: flex; justify-content: flex-end; gap: 10px; }
-
-  .nav-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 11px 22px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: calc(0.92rem * var(--text-scale));
-    cursor: pointer;
-  }
-
-  .nav-btn:hover { border-color: var(--accent); }
-  .nav-btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--btn-text);
-    font-weight: 700;
-  }
-
-  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* ===== RESULTS ===== */
-  #results-screen {
-    display: none;
-    min-height: 100vh;
-    padding: 40px 24px 64px;
-  }
-
-  .results-inner { max-width: 760px; margin: 0 auto; }
-
-  .result-hero {
-    text-align: center;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 28px;
-    margin-bottom: 28px;
-  }
-
-  .big-score {
-    font-size: calc(3.5rem * var(--text-scale));
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  .result-label { color: var(--muted); font-style: italic; margin-bottom: 16px; }
-
-  .grade-badge {
-    display: inline-block;
-    padding: 6px 20px;
-    border: 1px solid var(--border);
-    font-weight: 700;
-    font-size: calc(1rem * var(--text-scale));
-  }
-
-  .grade-A { color: var(--success); border-color: var(--success); }
-  .grade-B { color: var(--accent2); border-color: var(--accent2); }
-  .grade-C { color: #8a6d1a; border-color: #8a6d1a; }
-  .grade-D { color: var(--danger); border-color: var(--danger); }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 18px;
-    text-align: center;
-  }
-
-  .stat-num {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-size: calc(1.8rem * var(--text-scale));
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .stat-num.green { color: var(--success); }
-  .stat-num.red { color: var(--danger); }
-  .stat-num.blue { color: var(--accent2); }
-  .stat-lbl { font-size: calc(0.78rem * var(--text-scale)); color: var(--muted); }
-
-  .results-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 36px;
-  }
-
-  .results-actions .nav-btn { flex: 1; text-align: center; min-width: 140px; }
-
-  .review-section { border-top: 2px solid var(--border); padding-top: 28px; }
-
-  .review-title {
-    font-size: calc(1.15rem * var(--text-scale));
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--accent);
-  }
-
-  .review-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 16px 18px;
-    margin-bottom: 10px;
-  }
-
-  .review-item.was-wrong { border-left: 4px solid var(--danger); }
-  .review-item.was-correct { border-left: 4px solid var(--success); }
-  .review-item.unanswered { border-left: 4px solid var(--muted); }
-
-  .review-q {
-    font-size: calc(0.95rem * var(--text-scale));
-    font-weight: 600;
-    margin-bottom: 8px;
-    line-height: 1.5;
-  }
-
-  .review-a {
-    font-size: calc(0.88rem * var(--text-scale));
-    color: var(--muted);
-  }
-
-  .review-a span { display: block; margin-top: 4px; }
-  .review-a .your-ans { color: var(--danger); }
-  .review-a .correct-ans { color: var(--success); }
-
-  .fade-in { animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
-  }
-
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
-
-  .copyright-watermark {
-    position: fixed;
-    right: max(10px, env(safe-area-inset-right, 0px));
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
-    z-index: 10000;
-    pointer-events: none;
-    user-select: none;
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-size: calc(0.75rem * var(--text-scale));
-    font-weight: 700;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
-    border: 1px solid var(--border);
-    padding: 7px 14px;
-    border-radius: var(--card-r);
-    box-shadow: 0 2px 10px var(--shadow);
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    line-height: 1.2;
-  }
+:root{
+  --bg:#F4F6F8; --card:#FFFFFF; --ink:#1B2B33; --ink-soft:#5A6E77;
+  --line:#DCE3E5; --teal:#0E7C7B; --teal-deep:#0A5C5B; --teal-soft:#E3F0EF;
+  --amber:#D9A441; --amber-soft:#F7EEDB; --coral:#D95D4E; --coral-soft:#FBE9E6;
+  --green:#3E8E5A; --green-soft:#E6F2EA;
+  --radius:14px; --shadow:0 1px 3px rgba(27,43,51,.08), 0 4px 14px rgba(27,43,51,.05);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:15.5px; line-height:1.5;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{margin:0; line-height:1.25}
+button{font:inherit; border:none; background:none; color:inherit; cursor:pointer}
+input,select,textarea{
+  font:inherit; color:var(--ink); background:var(--bg);
+  border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--teal)}
+label{display:block; font-size:12.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); margin:14px 0 5px}
+
+/* Header */
+header{
+  position:sticky; top:0; z-index:20; background:var(--teal); color:#fff;
+  padding:calc(12px + env(safe-area-inset-top)) 18px 12px; display:flex; align-items:center; justify-content:space-between;
+}
+header .brand{font-weight:800; font-size:19px; letter-spacing:.02em}
+header .brand span{color:#BFE3DC; font-weight:500}
+header .date{font-size:12.5px; opacity:.85}
+header .gear{font-size:20px; padding:6px; border-radius:8px}
+header .gear:active{background:rgba(255,255,255,.15)}
+
+main{padding:16px 16px 8px; max-width:640px; margin:0 auto}
+.view{display:none}
+.view.active{display:block; animation:fade .18s ease}
+@keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* Cards & generic */
+.card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:12px}
+.section-title{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin:20px 0 10px}
+.section-title:first-child{margin-top:4px}
+.muted{color:var(--ink-soft); font-size:13.5px}
+.empty{color:var(--ink-soft); text-align:center; padding:28px 12px; font-size:14px}
+.pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:99px; letter-spacing:.03em}
+.pill.overdue{background:var(--coral-soft); color:var(--coral)}
+.pill.soon{background:var(--amber-soft); color:#9C7320}
+.pill.ok{background:var(--teal-soft); color:var(--teal-deep)}
+.pill.done{background:var(--green-soft); color:var(--green)}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--teal); color:#fff; font-weight:700; border-radius:12px; padding:12px 18px; width:100%;
+}
+.btn:active{background:var(--teal-deep)}
+.btn.ghost{background:var(--teal-soft); color:var(--teal-deep)}
+.btn.danger{background:var(--coral-soft); color:var(--coral)}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+
+/* Stats strip */
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:6px}
+.stat{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 8px; text-align:center}
+.stat b{display:block; font-size:24px; font-weight:800; line-height:1.1}
+.stat span{font-size:11.5px; color:var(--ink-soft); font-weight:600; letter-spacing:.03em}
+.stat.alert b{color:var(--coral)}
+.stat.warn b{color:#9C7320}
+
+/* Case cards */
+.case{display:block; text-align:left; width:100%; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:13px 15px; margin-bottom:11px; border-left:4px solid var(--line)}
+.case.overdue{border-left-color:var(--coral)}
+.case.soon{border-left-color:var(--amber)}
+.case.active{border-left-color:var(--teal)}
+.case.done{border-left-color:var(--green)}
+.case .top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.case .name{font-weight:700; font-size:16px}
+.case .meta{font-size:13px; color:var(--ink-soft); margin-top:2px}
+.case .meta .shade{
+  display:inline-block; font-size:11px; font-weight:800; color:#6B5222;
+  background:linear-gradient(180deg,#FBF6E8,#EFDFB8); border:1px solid #E2CF9C;
+  border-radius:4px 4px 7px 7px; padding:1px 7px; margin-left:4px;
+}
+.steps{display:flex; gap:4px; margin-top:9px}
+.steps i{flex:1; height:5px; border-radius:3px; background:var(--line)}
+.steps i.on{background:var(--teal)}
+.steps i.remake{background:var(--coral)}
+.case .status-line{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:5px}
+
+/* Filter chips */
+.chips{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap; font-size:13px; font-weight:600; padding:7px 14px; border-radius:99px; background:var(--card); color:var(--ink-soft); box-shadow:var(--shadow)}
+.chip.sel{background:var(--ink); color:#fff}
+
+/* Quota */
+.quota-item{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:13px 15px; margin-bottom:11px}
+.quota-item .top{display:flex; justify-content:space-between; align-items:center; gap:10px}
+.quota-item .qname{font-weight:700}
+.quota-item .count{font-variant-numeric:tabular-nums; font-weight:800; font-size:15px}
+.quota-item .count small{color:var(--ink-soft); font-weight:600}
+.qbar{display:flex; gap:3px; margin-top:10px}
+.qbar i{flex:1; height:9px; border-radius:3px 3px 5px 5px; background:var(--line)}
+.qbar i.f{background:linear-gradient(180deg,#17918F,#0A5C5B)}
+.qbar i.f.last{background:linear-gradient(180deg,#E5B95C,#C08F2C)}
+.qctrl{display:flex; gap:8px; margin-top:11px}
+.qctrl button{flex:1; font-weight:800; font-size:17px; border-radius:10px; padding:7px 0; background:var(--bg); border:1.5px solid var(--line)}
+.qctrl button:active{background:var(--teal-soft); border-color:var(--teal)}
+.qctrl .edit{font-size:13px; font-weight:600; color:var(--ink-soft)}
+
+/* Guide accordion */
+details.guide{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:11px; overflow:hidden}
+details.guide summary{
+  list-style:none; display:flex; align-items:center; gap:11px; padding:14px 16px;
+  font-weight:700; cursor:pointer; user-select:none;
+}
+details.guide summary::-webkit-details-marker{display:none}
+details.guide summary .ico{font-size:19px}
+details.guide summary::after{content:"›"; margin-left:auto; font-size:20px; color:var(--ink-soft); transform:rotate(90deg); transition:transform .15s}
+details.guide[open] summary::after{transform:rotate(-90deg)}
+details.guide .body{padding:0 16px 15px; font-size:14.5px}
+details.guide .body h4{margin:13px 0 5px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--teal-deep)}
+details.guide .body ol,details.guide .body ul{margin:5px 0; padding-left:20px}
+details.guide .body li{margin-bottom:4px}
+details.guide .body .tip{background:var(--amber-soft); border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:8px 11px; font-size:13.5px; margin:9px 0}
+details.guide .body .warn{background:var(--coral-soft); border-left:3px solid var(--coral); border-radius:0 8px 8px 0; padding:8px 11px; font-size:13.5px; margin:9px 0}
+
+/* Shade picker */
+.shades{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:4px}
+.shade-tab{
+  font-size:12.5px; font-weight:800; padding:10px 0 8px; text-align:center; color:#5C4A1E;
+  border:1.5px solid #E2CF9C; border-radius:6px 6px 12px 12px; position:relative;
+}
+.shade-tab.sel{outline:2.5px solid var(--teal); outline-offset:1px}
+.shade-tab::before{content:""; position:absolute; top:-4px; left:50%; transform:translateX(-50%); width:16px; height:5px; background:#C9CFD2; border-radius:2px}
+
+/* Bottom sheet */
+.overlay{position:fixed; inset:0; background:rgba(20,32,38,.45); z-index:40; display:none}
+.overlay.show{display:block}
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--card);
+  border-radius:20px 20px 0 0; padding:10px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto; transform:translateY(105%); transition:transform .22s ease;
+  max-width:640px; margin:0 auto;
+}
+.sheet.show{transform:none}
+.sheet .grab{width:42px; height:5px; background:var(--line); border-radius:3px; margin:4px auto 12px}
+.sheet h2{font-size:18px; margin-bottom:2px}
+
+/* Bottom nav */
+nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--card);
+  border-top:1px solid var(--line); display:flex;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+nav button{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--ink-soft); padding:5px 0; border-radius:10px}
+nav button .ni{font-size:21px; line-height:1}
+nav button.sel{color:var(--teal-deep)}
+nav button.sel .ni{transform:scale(1.08)}
+
+/* FAB */
+.fab{
+  position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:29;
+  width:56px; height:56px; border-radius:18px; background:var(--teal); color:#fff;
+  font-size:28px; font-weight:400; box-shadow:0 6px 18px rgba(14,124,123,.4);
+  display:none; align-items:center; justify-content:center;
+}
+.fab.show{display:flex}
+.fab:active{background:var(--teal-deep)}
+
+/* Toast */
+#toast{
+  position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:#fff; font-size:13.5px; font-weight:600; padding:9px 18px;
+  border-radius:99px; opacity:0; transition:.25s; z-index:60; pointer-events:none; white-space:nowrap;
+}
+#toast.show{opacity:1; transform:translateX(-50%)}
+:focus-visible{outline:2.5px solid var(--teal); outline-offset:2px}
+
+/* Map & tour */
+#map{height:44vh; min-height:280px; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; z-index:1; background:var(--line)}
+.place-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+.place-actions a{flex:1; min-width:70px; text-align:center; font-size:12.5px; font-weight:700; padding:8px 4px; border-radius:10px; text-decoration:none}
+.act-wa{background:#E7F6EC; color:#128C4A}
+.act-call{background:var(--teal-soft); color:var(--teal-deep)}
+.act-dir{background:var(--amber-soft); color:#9C7320}
+.stopnum{background:var(--teal); color:#fff; font-weight:800; font-size:12px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.tour-stop{display:flex; gap:10px; padding:7px 0; border-top:1px dashed var(--line); font-size:14px; cursor:pointer}
+.tour-stop .n{color:var(--teal-deep); font-weight:800}
+.map-pop button{display:block; width:100%; font-weight:700; font-size:13px; padding:7px 10px; border-radius:8px; background:var(--teal-soft); color:var(--teal-deep); margin-top:6px}
+.btn.wa{background:#128C4A}
 </style>
 </head>
 <body>
-<div id="app">
 
-<div id="setup-screen">
-  <div class="classic-header">
-    <div class="institution">Dr. Cube Dentistry · 4th Stage</div>
-    <h1>Oral Surgery Quiz</h1>
-    <p class="subtitle" id="subtitle-text">Oral Surgery MCQs · <span id="total-count-label">957</span> questions · 21 lectures</p>
+<header>
+  <div>
+    <div class="brand">Dent<span>Lab</span></div>
+    <div class="date" id="hdrDate"></div>
   </div>
+  <button class="gear" id="btnSettings" aria-label="Settings and backup">⚙︎</button>
+</header>
 
-  <div class="setup-card">
-    <div class="field">
-      <label>Color Theme</label>
-      <div class="btn-group theme-grid">
-        <button type="button" class="theme-btn active" data-theme-id="parchment" onclick="selectTheme('parchment')"><span class="swatch"></span>Parchment</button>
-        <button type="button" class="theme-btn" data-theme-id="navy" onclick="selectTheme('navy')"><span class="swatch"></span>Navy</button>
-        <button type="button" class="theme-btn" data-theme-id="forest" onclick="selectTheme('forest')"><span class="swatch"></span>Forest</button>
-        <button type="button" class="theme-btn" data-theme-id="slate" onclick="selectTheme('slate')"><span class="swatch"></span>Slate (dark)</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>Text Size</label>
-      <div class="btn-group four-col">
-        <button type="button" class="size-btn" data-size="small" onclick="selectTextSize('small')">Small</button>
-        <button type="button" class="size-btn active" data-size="medium" onclick="selectTextSize('medium')">Medium</button>
-        <button type="button" class="size-btn" data-size="large" onclick="selectTextSize('large')">Large</button>
-        <button type="button" class="size-btn" data-size="xlarge" onclick="selectTextSize('xlarge')">Extra Large</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>Answer Feedback</label>
-      <div class="btn-group">
-        <button type="button" class="mode-btn active" id="fb-instant" onclick="selectFeedback('instant')">Show immediately</button>
-        <button type="button" class="mode-btn" id="fb-deferred" onclick="selectFeedback('deferred')">Show at end only</button>
-      </div>
-      <p class="field-hint">Show at end hides correct answers until you finish the quiz.</p>
-    </div>
-    <div class="field">
-      <label>Question Order</label>
-      <div class="btn-group">
-        <button type="button" class="mode-btn active" id="mode-random" onclick="selectMode('random')">Random</button>
-        <button type="button" class="mode-btn" id="mode-ordered" onclick="selectMode('ordered')">In order</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>Lectures to include</label>
-      <div class="lecture-range-row">
-        <label for="lecture-from">From</label>
-        <select id="lecture-from" onchange="onLectureRangeChange()"></select>
-        <label for="lecture-to">To</label>
-        <select id="lecture-to" onchange="onLectureRangeChange()"></select>
-      </div>
-      <div class="lecture-actions">
-        <button type="button" class="preset-btn" onclick="setLectureRange(1, 21)">All lectures (1–21)</button>
-      </div>
-      <p class="field-hint" id="lecture-filter-summary">—</p>
-      <details class="lecture-details" id="lecture-details">
-        <summary>Or pick individual lectures</summary>
-        <div id="lecture-checkboxes" class="lecture-grid"></div>
-      </details>
-    </div>
-    <div class="field">
-      <label>Number of Questions</label>
-      <div class="count-row">
-        <button type="button" class="preset-btn active" onclick="selectPreset(10, event)">10</button>
-        <button type="button" class="preset-btn" onclick="selectPreset(20, event)">20</button>
-        <button type="button" class="preset-btn" onclick="selectPreset(50, event)">50</button>
-        <button type="button" class="preset-btn" onclick="selectPreset(100, event)">100</button>
-        <button type="button" class="preset-btn" id="preset-all" onclick="selectPreset('all', event)">All</button>
-      </div>
-      <div class="custom-input-wrap">
-        <input type="number" id="custom-count" min="1" placeholder="Custom" oninput="selectCustom(this.value)">
-        <span>questions</span>
-      </div>
-    </div>
-    <p class="total-note">In pool: <strong id="total-available">957</strong> questions (after lecture filter)</p>
-    <button type="button" class="start-btn" onclick="startQuiz()">Begin Quiz</button>
-  </div>
-</div>
+<main>
+  <!-- TODAY -->
+  <section class="view" id="view-today"></section>
+  <!-- CASES -->
+  <section class="view" id="view-cases">
+    <div class="chips" id="caseFilters"></div>
+    <div id="caseList"></div>
+  </section>
+  <!-- QUOTA -->
+  <section class="view" id="view-quota">
+    <div id="quotaList"></div>
+    <button class="btn ghost" id="btnAddQuota">+ Add requirement</button>
+  </section>
+  <!-- MAP -->
+  <section class="view" id="view-map">
+    <div id="map"></div>
+    <div class="chips" id="mapTabs"></div>
+    <div id="mapPanel"></div>
+  </section>
+  <!-- GUIDE -->
+  <section class="view" id="view-guide"></section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-<div id="quiz-screen">
-  <div class="quiz-header">
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span id="prog-text">Question 1 of 10</span>
-        <span id="prog-pct">0%</span>
+<button class="fab" id="fab" aria-label="Add case">+</button>
+
+<nav>
+  <button data-tab="today" class="sel"><span class="ni">☀︎</span>Today</button>
+  <button data-tab="cases"><span class="ni">🦷</span>Cases</button>
+  <button data-tab="quota"><span class="ni">▤</span>Quota</button>
+  <button data-tab="map"><span class="ni">🗺</span>Map</button>
+  <button data-tab="guide"><span class="ni">✎</span>Guide</button>
+</nav>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ---------------- State ---------------- */
+const LS_KEY = "dentlab.v1";
+const CASE_TYPES = ["Crown — Zirconia","Crown — PFM","Crown — E-max","Bridge","Post & Core","Veneer","Implant Crown","Complete Denture","RPD — Acrylic","RPD — Cr-Co","Night Guard","Inlay / Onlay","Other"];
+const STATUSES = [
+  {id:"prep",    label:"Preparation"},
+  {id:"imp",     label:"Impression taken"},
+  {id:"sent",    label:"Sent to lab"},
+  {id:"tryin",   label:"Try-in / framework"},
+  {id:"delivered",label:"Delivered / cemented"},
+  {id:"remake",  label:"Remake needed"}
+];
+const SHADES = ["A1","A2","A3","A3.5","A4","B1","B2","B3","B4","C1","C2","C3","C4","D2","D3","D4"];
+const SHADE_COLORS = {A1:"#F3EBDC",A2:"#EFE3CB","A3":"#EBDBB9","A3.5":"#E4CFA3",A4:"#DBC28E",B1:"#F4EEDA",B2:"#EFE6C4",B3:"#E7D8A6",B4:"#DFCB8F",C1:"#E8E1D0",C2:"#DFD5BC",C3:"#D5C8A7",C4:"#CBBB93",D2:"#E7DECE",D3:"#DDD2BC",D4:"#D2C5A9"};
+
+const DEFAULT_QUOTA = [
+  {id:qid(), name:"Complete denture", done:0, target:1},
+  {id:qid(), name:"RPD", done:0, target:1},
+  {id:qid(), name:"Crown", done:0, target:2},
+  {id:qid(), name:"Bridge units", done:0, target:3},
+  {id:qid(), name:"Composite restorations", done:0, target:10},
+  {id:qid(), name:"Amalgam restorations", done:0, target:5},
+  {id:qid(), name:"Root canal treatment", done:0, target:4},
+  {id:qid(), name:"Extractions", done:0, target:10},
+  {id:qid(), name:"Scaling & polishing", done:0, target:5}
+];
+
+function qid(){ return "q" + Math.random().toString(36).slice(2,9); }
+function cid(){ return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+let state = load();
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const s = JSON.parse(raw); if(s && Array.isArray(s.cases) && Array.isArray(s.quota)){ s.places = s.places || []; s.tour = s.tour || []; return s; } }
+  }catch(e){}
+  return { cases:[], quota: DEFAULT_QUOTA.map(q=>({...q})), places:[], tour:[] };
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Could not save — storage blocked"); } }
+
+/* ---------------- Utils ---------------- */
+const $ = s => document.querySelector(s);
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function daysUntil(iso){
+  if(!iso) return null;
+  const t = new Date(todayISO()+"T00:00:00"), d = new Date(iso+"T00:00:00");
+  return Math.round((d - t) / 86400000);
+}
+function fmtDate(iso){
+  if(!iso) return "—";
+  const d = new Date(iso+"T00:00:00");
+  return d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+}
+function statusIndex(id){ return STATUSES.findIndex(s=>s.id===id); }
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* Case urgency: returns {cls, pill} */
+function urgency(c){
+  if(c.status === "delivered") return {cls:"done", pill:'<span class="pill done">Done</span>'};
+  if(c.status === "remake") return {cls:"overdue", pill:'<span class="pill overdue">Remake</span>'};
+  const d = daysUntil(c.due);
+  if(d === null) return {cls:"active", pill:""};
+  if(d < 0)  return {cls:"overdue", pill:`<span class="pill overdue">Overdue ${-d}d</span>`};
+  if(d === 0) return {cls:"soon", pill:'<span class="pill soon">Due today</span>'};
+  if(d <= 3) return {cls:"soon", pill:`<span class="pill soon">Due in ${d}d</span>`};
+  return {cls:"active", pill:`<span class="pill ok">${fmtDate(c.due)}</span>`};
+}
+
+/* ---------------- Tabs ---------------- */
+let tab = "today";
+document.querySelectorAll("nav button").forEach(b=>{
+  b.addEventListener("click", ()=>{ tab = b.dataset.tab; renderTabs(); });
+});
+function renderTabs(){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("sel", b.dataset.tab===tab));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $("#view-"+tab).classList.add("active");
+  $("#fab").classList.toggle("show", tab==="today" || tab==="cases");
+  if(tab==="today") renderToday();
+  if(tab==="cases") renderCases();
+  if(tab==="quota") renderQuota();
+  if(tab==="map") renderMap();
+}
+
+/* ---------------- Today ---------------- */
+function renderToday(){
+  const v = $("#view-today");
+  const open = state.cases.filter(c=>c.status!=="delivered");
+  const overdue = open.filter(c=>{const d=daysUntil(c.due); return d!==null && d<0;});
+  const soon = open.filter(c=>{const d=daysUntil(c.due); return d!==null && d>=0 && d<=7;});
+  const atLab = open.filter(c=>c.status==="sent").length;
+  const qTotal = state.quota.reduce((a,q)=>a+q.target,0);
+  const qDone  = state.quota.reduce((a,q)=>a+Math.min(q.done,q.target),0);
+  const behind = state.quota.filter(q=>q.done<q.target).sort((a,b)=>(a.done/a.target)-(b.done/b.target)).slice(0,3);
+
+  let h = `<div class="stats">
+    <div class="stat ${overdue.length?"alert":""}"><b>${overdue.length}</b><span>Overdue</span></div>
+    <div class="stat ${soon.length?"warn":""}"><b>${soon.length}</b><span>Due ≤ 7 days</span></div>
+    <div class="stat"><b>${atLab}</b><span>At the lab</span></div>
+  </div>`;
+
+  if(overdue.length){
+    h += `<div class="section-title">Needs action</div>` + overdue.map(caseCard).join("");
+  }
+  if(soon.length){
+    h += `<div class="section-title">Coming up</div>` + soon.sort((a,b)=>(a.due||"").localeCompare(b.due||"")).map(caseCard).join("");
+  }
+  if(!overdue.length && !soon.length){
+    h += `<div class="card empty">${open.length ? "Nothing due this week. 🦷" : "No lab cases yet — tap + to add your first case."}</div>`;
+  }
+
+  h += `<div class="section-title">Requirements — ${qDone}/${qTotal} signed off</div>`;
+  if(behind.length){
+    h += behind.map(q=>{
+      const pct = q.target ? Math.round(100*q.done/q.target) : 0;
+      return `<div class="card" style="padding:11px 15px">
+        <div style="display:flex;justify-content:space-between;font-size:14px">
+          <b>${esc(q.name)}</b><span class="muted">${q.done}/${q.target} · ${pct}%</span>
+        </div>${qbar(q)}</div>`;
+    }).join("");
+  } else {
+    h += `<div class="card empty">All requirements complete. Well done. ✔</div>`;
+  }
+  v.innerHTML = h;
+  bindCaseCards(v);
+}
+
+/* ---------------- Cases ---------------- */
+const FILTERS = [
+  {id:"active", label:"Active"},
+  {id:"all", label:"All"},
+  {id:"overdue", label:"Overdue"},
+  {id:"sent", label:"At lab"},
+  {id:"remake", label:"Remakes"},
+  {id:"delivered", label:"Delivered"}
+];
+let filter = "active";
+
+function renderCases(){
+  $("#caseFilters").innerHTML = FILTERS.map(f=>`<button class="chip ${filter===f.id?"sel":""}" data-f="${f.id}">${f.label}</button>`).join("");
+  $("#caseFilters").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f; renderCases();}));
+
+  let list = state.cases.slice();
+  if(filter==="active") list = list.filter(c=>c.status!=="delivered");
+  if(filter==="overdue") list = list.filter(c=>{const d=daysUntil(c.due); return c.status!=="delivered" && d!==null && d<0;});
+  if(filter==="sent") list = list.filter(c=>c.status==="sent");
+  if(filter==="remake") list = list.filter(c=>c.status==="remake");
+  if(filter==="delivered") list = list.filter(c=>c.status==="delivered");
+
+  list.sort((a,b)=>{
+    if(a.status==="delivered" !== (b.status==="delivered")) return a.status==="delivered" ? 1 : -1;
+    return (a.due||"9999").localeCompare(b.due||"9999");
+  });
+
+  $("#caseList").innerHTML = list.length
+    ? list.map(caseCard).join("")
+    : `<div class="card empty">No cases here. Tap + to add one.</div>`;
+  bindCaseCards($("#caseList"));
+}
+
+function caseCard(c){
+  const u = urgency(c);
+  const si = statusIndex(c.status);
+  const steps = STATUSES.slice(0,5).map((s,i)=>{
+    if(c.status==="remake") return `<i class="${i<=2?"remake":""}"></i>`;
+    return `<i class="${i<=si?"on":""}"></i>`;
+  }).join("");
+  const meta = [
+    esc(c.type),
+    c.tooth ? "Tooth " + esc(c.tooth) : "",
+    c.shade ? `<span class="shade">${esc(c.shade)}</span>` : "",
+  ].filter(Boolean).join(" · ");
+  return `<button class="case ${u.cls}" data-id="${c.id}">
+    <div class="top"><span class="name">${esc(c.patient) || "Unnamed patient"}</span>${u.pill}</div>
+    <div class="meta">${meta}${c.lab ? " · " + esc(c.lab) : ""}</div>
+    <div class="steps">${steps}</div>
+    <div class="status-line"><span>${esc((STATUSES[si]||{}).label || "")}</span><span>${c.due ? "Due " + fmtDate(c.due) : ""}</span></div>
+  </button>`;
+}
+function bindCaseCards(root){
+  root.querySelectorAll(".case").forEach(el=>el.addEventListener("click",()=>openCaseForm(el.dataset.id)));
+}
+
+/* ---------------- Case form (sheet) ---------------- */
+function openCaseForm(id){
+  const c = id ? state.cases.find(x=>x.id===id) : null;
+  const s = c || {patient:"",type:CASE_TYPES[0],tooth:"",shade:"",lab:"",labPhone:"",sent:"",due:"",status:"prep",notes:""};
+  openSheet(`
+    <h2>${c ? "Edit case" : "New lab case"}</h2>
+    <label>Patient name</label><input id="f-patient" value="${esc(s.patient)}" placeholder="e.g. Ahmed K.">
+    <div class="row2">
+      <div><label>Case type</label><select id="f-type">${CASE_TYPES.map(t=>`<option ${t===s.type?"selected":""}>${t}</option>`).join("")}</select></div>
+      <div><label>Tooth / teeth (FDI)</label><input id="f-tooth" value="${esc(s.tooth)}" placeholder="e.g. 11, 21"></div>
+    </div>
+    <label>Shade</label>
+    <div class="shades" id="f-shades">${SHADES.map(sh=>`<button type="button" class="shade-tab ${s.shade===sh?"sel":""}" data-sh="${sh}" style="background:${SHADE_COLORS[sh]}">${sh}</button>`).join("")}</div>
+    <label>Lab name</label><input id="f-lab" value="${esc(s.lab)}" placeholder="e.g. Erbil Dental Lab">
+    <label>Lab WhatsApp number</label><input id="f-labphone" inputmode="tel" value="${esc(s.labPhone||"")}" placeholder="e.g. 0750 123 4567">
+    <div class="row2">
+      <div><label>Date sent</label><input type="date" id="f-sent" value="${esc(s.sent)}"></div>
+      <div><label>Due date</label><input type="date" id="f-due" value="${esc(s.due)}"></div>
+    </div>
+    <label>Status</label>
+    <select id="f-status">${STATUSES.map(st=>`<option value="${st.id}" ${st.id===s.status?"selected":""}>${st.label}</option>`).join("")}</select>
+    <label>Notes</label><textarea id="f-notes" rows="2" placeholder="Occlusion notes, margin design, material instructions…">${esc(s.notes)}</textarea>
+    <div style="height:16px"></div>
+    <button class="btn" id="f-save">${c ? "Save changes" : "Add case"}</button>
+    ${c ? `<div style="height:8px"></div><button class="btn wa" id="f-wa">🟢 Send prescription on WhatsApp</button>
+    <div style="height:8px"></div><button class="btn danger" id="f-del">Delete case</button>` : ""}
+  `);
+  let shade = s.shade;
+  $("#f-shades").querySelectorAll(".shade-tab").forEach(b=>b.addEventListener("click",()=>{
+    shade = (shade===b.dataset.sh) ? "" : b.dataset.sh;
+    $("#f-shades").querySelectorAll(".shade-tab").forEach(x=>x.classList.toggle("sel", x.dataset.sh===shade));
+  }));
+  $("#f-save").addEventListener("click",()=>{
+    const data = {
+      patient: $("#f-patient").value.trim(),
+      type: $("#f-type").value,
+      tooth: $("#f-tooth").value.trim(),
+      shade,
+      lab: $("#f-lab").value.trim(),
+      labPhone: $("#f-labphone").value.trim(),
+      sent: $("#f-sent").value,
+      due: $("#f-due").value,
+      status: $("#f-status").value,
+      notes: $("#f-notes").value.trim()
+    };
+    if(!data.patient){ toast("Add a patient name"); return; }
+    if(c){ Object.assign(c, data); toast("Case updated"); }
+    else { state.cases.push({id:cid(), ...data}); toast("Case added"); }
+    save(); closeSheet(); renderTabs();
+  });
+  if(c) $("#f-wa").addEventListener("click",()=>{
+    const msg = [
+      "🦷 Lab case — " + ($("#f-patient").value.trim() || "patient"),
+      "Type: " + $("#f-type").value,
+      $("#f-tooth").value.trim() ? "Tooth (FDI): " + $("#f-tooth").value.trim() : "",
+      shade ? "Shade: " + shade : "",
+      $("#f-due").value ? "Needed by: " + fmtDate($("#f-due").value) : "",
+      $("#f-notes").value.trim() ? "Notes: " + $("#f-notes").value.trim() : ""
+    ].filter(Boolean).join("\n");
+    window.open(waLink($("#f-labphone").value, msg), "_blank");
+  });
+  if(c) $("#f-del").addEventListener("click",()=>{
+    if(!confirm("Delete this case? This cannot be undone.")) return;
+    state.cases = state.cases.filter(x=>x.id!==c.id);
+    save(); closeSheet(); renderTabs(); toast("Case deleted");
+  });
+}
+
+/* ---------------- Quota ---------------- */
+function qbar(q){
+  const seg = Math.min(q.target, 20) || 1;
+  const per = q.target / seg;
+  let bars = "";
+  for(let i=0;i<seg;i++){
+    const filled = q.done >= (i+1)*per - 0.001;
+    const last = filled && q.done >= q.target && i === seg-1;
+    bars += `<i class="${filled ? "f" + (last?" last":"") : ""}"></i>`;
+  }
+  return `<div class="qbar">${bars}</div>`;
+}
+function renderQuota(){
+  const v = $("#quotaList");
+  if(!state.quota.length){ v.innerHTML = `<div class="card empty">No requirements yet — add your clinic quotas below.</div>`; return; }
+  v.innerHTML = state.quota.map(q=>`
+    <div class="quota-item" data-id="${q.id}">
+      <div class="top">
+        <span class="qname">${esc(q.name)} ${q.done>=q.target?'<span class="pill done">Complete</span>':""}</span>
+        <span class="count">${q.done}<small>/${q.target}</small></span>
       </div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
-    </div>
-    <div class="score-pill" id="score-pill">
-      <span class="score-c">Correct: <span id="score-correct">0</span></span>
-      <span class="score-w">Wrong: <span id="score-wrong">0</span></span>
-    </div>
-    <button type="button" class="quit-btn" onclick="quitQuiz()">Quit</button>
-  </div>
-  <div class="question-outer">
-    <div id="q-content" class="fade-in">
-      <div class="q-number" id="q-num"></div>
-      <div class="q-text" id="q-text"></div>
-      <div class="options-list" id="options-list"></div>
-      <div class="feedback-box" id="feedback-box"></div>
-      <div class="nav-row">
-        <button type="button" class="nav-btn primary" id="next-btn" onclick="nextQuestion()" disabled>Next</button>
+      ${qbar(q)}
+      <div class="qctrl">
+        <button data-act="minus" aria-label="Decrease">−</button>
+        <button data-act="plus" aria-label="Increase">+</button>
+        <button data-act="edit" class="edit">Edit</button>
       </div>
+    </div>`).join("");
+  v.querySelectorAll(".quota-item").forEach(el=>{
+    const q = state.quota.find(x=>x.id===el.dataset.id);
+    el.querySelector('[data-act="plus"]').addEventListener("click",()=>{ q.done++; save(); renderQuota(); if(q.done===q.target) toast(q.name+" complete! 🎉"); });
+    el.querySelector('[data-act="minus"]').addEventListener("click",()=>{ if(q.done>0){ q.done--; save(); renderQuota(); } });
+    el.querySelector('[data-act="edit"]').addEventListener("click",()=>openQuotaForm(q.id));
+  });
+}
+function openQuotaForm(id){
+  const q = id ? state.quota.find(x=>x.id===id) : null;
+  openSheet(`
+    <h2>${q ? "Edit requirement" : "New requirement"}</h2>
+    <label>Name</label><input id="q-name" value="${esc(q?q.name:"")}" placeholder="e.g. Crown preparations">
+    <div class="row2">
+      <div><label>Target</label><input type="number" id="q-target" min="1" value="${q?q.target:5}"></div>
+      <div><label>Done so far</label><input type="number" id="q-done" min="0" value="${q?q.done:0}"></div>
     </div>
-  </div>
-</div>
+    <div style="height:16px"></div>
+    <button class="btn" id="q-save">${q ? "Save" : "Add requirement"}</button>
+    ${q ? `<div style="height:8px"></div><button class="btn danger" id="q-del">Delete</button>` : ""}
+  `);
+  $("#q-save").addEventListener("click",()=>{
+    const name = $("#q-name").value.trim();
+    const target = Math.max(1, parseInt($("#q-target").value||"1",10));
+    const done = Math.max(0, parseInt($("#q-done").value||"0",10));
+    if(!name){ toast("Add a name"); return; }
+    if(q){ Object.assign(q,{name,target,done}); } else { state.quota.push({id:qid(),name,target,done}); }
+    save(); closeSheet(); renderQuota(); toast("Saved");
+  });
+  if(q) $("#q-del").addEventListener("click",()=>{
+    if(!confirm("Delete this requirement?")) return;
+    state.quota = state.quota.filter(x=>x.id!==q.id);
+    save(); closeSheet(); renderQuota();
+  });
+}
+$("#btnAddQuota").addEventListener("click",()=>openQuotaForm(null));
 
-<div id="results-screen">
-  <div class="results-inner">
-    <div class="result-hero">
-      <div class="big-score" id="res-pct">—</div>
-      <div class="result-label">Final Score</div>
-      <div class="grade-badge" id="res-grade"></div>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-num green" id="res-correct">0</div><div class="stat-lbl">Correct</div></div>
-      <div class="stat-card"><div class="stat-num red" id="res-wrong">0</div><div class="stat-lbl">Wrong</div></div>
-      <div class="stat-card"><div class="stat-num blue" id="res-total">0</div><div class="stat-lbl">Total</div></div>
-    </div>
-    <div class="results-actions">
-      <button type="button" class="nav-btn" onclick="goSetup()">New Quiz</button>
-      <button type="button" class="nav-btn primary" onclick="startQuiz()">Retry</button>
-    </div>
-    <div class="review-section">
-      <div class="review-title">Answer Review</div>
-      <div id="review-list"></div>
-    </div>
-  </div>
-</div>
+/* ---------------- Guide ---------------- */
+const GUIDE = [
+{ico:"🧪", t:"Impressions — materials & technique", b:`
+<h4>Alginate (irreversible hydrocolloid)</h4>
+<ul><li>Uses: study casts, opposing arch, denture primary impressions.</li>
+<li>Correct water:powder ratio; mix fast to a creamy, streak-free consistency.</li>
+<li>Seat with light vibration, hold still until fully set (~2–3 min), remove with one quick snap.</li>
+<li><b>Pour within 15–30 minutes</b> — alginate distorts by syneresis/imbibition. If delayed, wrap in a damp tissue in a sealed bag.</li></ul>
+<h4>PVS / addition silicone (final impressions)</h4>
+<ul><li>Uses: crown & bridge, final denture impressions, implant work.</li>
+<li>Putty-wash (2-step or 1-step) or light body with a custom/stock tray + adhesive.</li>
+<li>Retract gingiva (cord ± hemostatic agent) so margins are captured clearly.</li>
+<li>Latex gloves inhibit PVS setting — avoid touching putty with latex.</li></ul>
+<div class="tip">Check every impression before dismissing the patient: margins continuous, no pulls/drags, no bubbles at finish lines, tray not showing through.</div>`},
+{ico:"🗿", t:"Pouring casts & custom trays", b:`
+<h4>Pouring</h4>
+<ol><li>Rinse and disinfect the impression; shake off excess water.</li>
+<li>Vacuum-mix (or hand-mix carefully) dental stone to correct W:P ratio.</li>
+<li>Add stone in small increments from one end with vibration to chase out air.</li>
+<li>Let set 45–60 min before separating; don't leave alginate on stone overnight (surface gets chalky).</li></ol>
+<h4>Custom tray (for final denture impressions)</h4>
+<ol><li>Block out undercuts on the primary cast, adapt one wax spacer sheet.</li>
+<li>Adapt light-cured or self-cure acrylic 2–3 mm thick; add a handle that doesn't distort the lip.</li>
+<li>Trim borders 2 mm short of the sulcus to leave room for border molding.</li>
+<li>Border mold with greenstick/heavy body, then final wash impression (ZOE or light body PVS).</li></ol>`},
+{ico:"👑", t:"Crown & bridge — full workflow", b:`
+<ol><li><b>Diagnosis & shade:</b> take shade before preparation (teeth dehydrate and lighten during work).</li>
+<li><b>Preparation:</b> occlusal reduction ~1.5–2 mm (functional cusp bevel), axial 1–1.5 mm, taper 6–10°, defined finish line (chamfer for zirconia/metal, shoulder for E-max facial).</li>
+<li><b>Retraction & final impression</b> with clear, continuous margins.</li>
+<li><b>Bite registration</b> in centric occlusion; face-bow if the case demands.</li>
+<li><b>Temporization:</b> well-fitting temp protects the prep, keeps the tooth in position, maintains gingival contour.</li>
+<li><b>Lab stage:</b> send prescription (see checklist section), impression/scan, bite, shade, opposing.</li>
+<li><b>Try-in / framework check:</b> marginal fit (explorer + radiograph for proximal), contacts (floss snaps, doesn't tear), occlusion.</li>
+<li><b>Cementation:</b> isolate, follow cement instructions, remove excess before full set, re-check occlusion.</li></ol>
+<div class="warn">Most remakes trace back to the impression or the bite record — check both twice before sending.</div>`},
+{ico:"🎨", t:"Shade selection tips", b:`
+<ul><li>Take shade at the start of the appointment, teeth fully hydrated.</li>
+<li>Use natural daylight or a corrected light source; neutral background (grey bib), no bright lipstick.</li>
+<li>Look for ≤ 5–7 seconds per tab, then rest eyes on something grey/blue — the eye fatigues fast for yellows.</li>
+<li>Match the middle third of the tooth; note separately cervical, body, incisal + translucency/characterizations.</li>
+<li>Photograph the shade tab next to the tooth (tab number visible) and send it to the lab.</li></ul>
+<div class="tip">Value (lightness) matters more than hue. When torn between two tabs, choose the higher value — a slightly lighter crown is less noticeable than a darker one.</div>`},
+{ico:"😁", t:"Complete denture — the 5 visits", b:`
+<ol><li><b>Primary impressions</b> (alginate, stock tray) → primary casts → custom trays.</li>
+<li><b>Final impressions:</b> border molding, then wash impression → master casts → record bases + occlusal rims.</li>
+<li><b>Jaw relations:</b> set OVD (freeway space 2–4 mm), record centric relation, mark midline/canine/smile lines, select mould & shade → articulate → teeth setting.</li>
+<li><b>Try-in:</b> verify esthetics, phonetics ("S" and "F" sounds), OVD, centric — get patient approval <i>before</i> processing.</li>
+<li><b>Delivery:</b> check fit, extension, occlusion (remount if needed); educate on hygiene; review in 24–48 h for sore spots (use pressure-indicating paste).</li></ol>`},
+{ico:"🦿", t:"RPD basics — design & stages", b:`
+<ul><li>Classify with <b>Kennedy</b> (I bilateral free-end, II unilateral free-end, III bounded, IV anterior crossing midline); Applegate's rules for modifications.</li>
+<li>Survey the cast: path of insertion, undercuts for retention, guide planes.</li>
+<li>Cr-Co framework components: major connector, minor connectors, rests (on prepared rest seats!), direct retainers (clasps engage ~0.25 mm undercut), indirect retainers for free-end saddles.</li>
+<li>Stages: impressions → framework try-in (fit, rests seated, no rock) → altered cast if Kennedy I/II → wax try-in → delivery.</li></ul>
+<div class="tip">Prepare rest seats <i>before</i> the final impression — the framework can only be as good as what the lab receives.</div>`},
+{ico:"⏳", t:"Temporization & cementation", b:`
+<ul><li><b>Temporary crowns:</b> bis-acryl in a pre-op matrix (putty or vacuum-formed) is fastest; trim margins flush, adjust occlusion, cement with non-eugenol temp cement if using resin cement later (eugenol inhibits resin).</li>
+<li><b>Cement choice:</b> zirconia/metal → RMGI or self-adhesive resin; E-max/veneers → etch + silane + adhesive resin cement; implant crowns → minimal cement, margin supragingival, or screw-retained.</li>
+<li>Clean excess at gel stage; floss contacts; check occlusion with articulating paper (patient sitting up).</li></ul>`},
+{ico:"📋", t:"Lab prescription checklist (send with every case)", b:`
+<ul><li>Patient ID / your name & stage</li>
+<li>Restoration type + material (e.g. "monolithic zirconia crown, 11")</li>
+<li>Tooth numbers (FDI), pontic design for bridges</li>
+<li>Shade: body + cervical/incisal notes, photo of tab beside tooth</li>
+<li>Margin design & where you want the finish line</li>
+<li>Occlusal scheme notes / reduced occlusal clearance warnings</li>
+<li>Items enclosed: impression(s), bite, opposing, shade photo</li>
+<li>Due date — and your contact for questions</li></ul>
+<div class="tip">A clear prescription is the cheapest remake insurance there is. When in doubt, call the technician.</div>`},
+{ico:"🛠", t:"Common lab problems & causes", b:`
+<ul><li><b>Crown doesn't seat:</b> tight proximal contacts (adjust with articulating film in the contact), undercuts in prep, stone bubble in the die, impression drag at margin.</li>
+<li><b>Open margin:</b> distorted impression, chipped die, over-tapered prep with poor finish line.</li>
+<li><b>High occlusion:</b> inaccurate bite record, casts not mounted properly, patient bit into soft record.</li>
+<li><b>Wrong shade:</b> shade taken after drying/preparation, poor lighting, no photo sent.</li>
+<li><b>Denture doesn't stay:</b> over/under-extended borders, no posterior palatal seal, occlusal disharmony dislodging it.</li>
+<li><b>Porcelain fracture:</b> insufficient reduction, sharp prep angles, unsupported porcelain.</li></ul>`}
+];
+$("#view-guide").innerHTML =
+  `<div class="section-title">Lab & clinic reference</div>` +
+  GUIDE.map(g=>`<details class="guide"><summary><span class="ico">${g.ico}</span>${g.t}</summary><div class="body">${g.b}</div></details>`).join("") +
+  `<p class="muted" style="text-align:center;margin:18px 0">Study reference only — always follow your department's protocol.</p>`;
 
-</div>
+/* ---------------- WhatsApp helpers ---------------- */
+function waDigits(p){
+  let d = (p||"").replace(/\D/g,"");
+  if(d.startsWith("00")) d = d.slice(2);
+  if(d.startsWith("0")) d = "964" + d.slice(1); // Iraqi local → international
+  return d;
+}
+function waLink(phone, text){
+  const d = waDigits(phone), t = encodeURIComponent(text||"");
+  if(d) return `https://wa.me/${d}` + (t ? `?text=${t}` : "");
+  return `https://api.whatsapp.com/send?text=${t}`;
+}
 
-<div class="copyright-watermark" aria-hidden="true">By: Dr. Kamal Ahmed</div>
+/* ---------------- Map, places & tour ---------------- */
+const PLACE_CATS = ["Dental lab","Clinic","Supplier","Landmark","Food","Hotel","Other"];
+const CAT_COLORS = {"Dental lab":"#0E7C7B","Clinic":"#3E8E5A","Supplier":"#9C7320","Landmark":"#7A5EA8","Food":"#D95D4E","Hotel":"#3B7BB8","Other":"#5A6E77"};
+let map=null, markerLayer=null, tourLayer=null, lastTap=null, mapSub="places", shownDay=null;
 
-<script src="questions_data.js"></script>
-<script src="quiz_app.js"></script>
+function ensureMap(){
+  if(map) return true;
+  if(typeof L === "undefined"){
+    $("#map").innerHTML = '<div class="empty">The map needs internet the first time it loads.<br>Connect and reopen this tab.</div>';
+    return false;
+  }
+  map = L.map("map").setView([36.19, 44.01], 12); // Erbil
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:"© OpenStreetMap"}).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  tourLayer = L.layerGroup().addTo(map);
+  map.on("click", e=>{
+    lastTap = {lat:+e.latlng.lat.toFixed(6), lng:+e.latlng.lng.toFixed(6)};
+    const div = document.createElement("div"); div.className = "map-pop";
+    const b1 = document.createElement("button"); b1.textContent = "＋ Save place here";
+    const b2 = document.createElement("button"); b2.textContent = "⚑ Add tour stop here";
+    b1.onclick = ()=>{ map.closePopup(); openPlaceForm(null, lastTap.lat, lastTap.lng); };
+    b2.onclick = ()=>{ map.closePopup(); openStopForm(null, null, lastTap.lat, lastTap.lng); };
+    div.append(b1, b2);
+    L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
+  });
+  return true;
+}
+
+function drawMap(){
+  if(!map) return;
+  markerLayer.clearLayers(); tourLayer.clearLayers();
+  state.places.forEach(p=>{
+    L.circleMarker([p.lat, p.lng], {radius:9, color:"#fff", weight:2, fillColor:CAT_COLORS[p.cat]||"#5A6E77", fillOpacity:1})
+      .bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.cat)}`).addTo(markerLayer);
+  });
+  const day = state.tour.find(d=>d.id===shownDay);
+  if(day){
+    const pts = [];
+    day.stops.forEach((st,i)=>{
+      if(st.lat == null) return;
+      pts.push([st.lat, st.lng]);
+      L.marker([st.lat, st.lng], {icon: L.divIcon({className:"", html:`<div class="stopnum">${i+1}</div>`, iconSize:[24,24], iconAnchor:[12,12]})})
+        .bindPopup(`<b>${i+1}. ${esc(st.name)}</b>${st.time?"<br>🕐 "+esc(st.time):""}${st.note?"<br>"+esc(st.note):""}`)
+        .addTo(tourLayer);
+    });
+    if(pts.length > 1) L.polyline(pts, {color:"#0E7C7B", weight:3, dashArray:"6 6"}).addTo(tourLayer);
+    if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));
+  }
+}
+
+function renderMap(){
+  $("#mapTabs").innerHTML =
+    `<button class="chip ${mapSub==="places"?"sel":""}" data-m="places">📍 Places</button>
+     <button class="chip ${mapSub==="tour"?"sel":""}" data-m="tour">🧭 Tour plan</button>`;
+  $("#mapTabs").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{ mapSub=b.dataset.m; renderMap(); }));
+  if(ensureMap()) setTimeout(()=>{ map.invalidateSize(); drawMap(); }, 80);
+  renderMapPanel();
+}
+
+function renderMapPanel(){
+  const v = $("#mapPanel");
+  if(mapSub === "places"){
+    let h = `<p class="muted" style="margin:2px 4px 12px">Tap anywhere on the map to save a place (lab, clinic, supplier…) or drop a tour stop.</p>
+    <button class="btn ghost" id="p-gps" style="margin-bottom:12px">📍 Add place at my location</button>`;
+    h += state.places.length ? state.places.map(p=>`
+      <div class="card" style="border-left:4px solid ${CAT_COLORS[p.cat]||"#5A6E77"}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <b>${esc(p.name)}</b><span class="muted">${esc(p.cat)}</span>
+        </div>
+        ${p.notes ? `<div class="muted" style="margin-top:2px">${esc(p.notes)}</div>` : ""}
+        <div class="place-actions">
+          ${p.phone ? `<a class="act-wa" href="${waLink(p.phone,"")}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="act-call" href="tel:${esc(p.phone)}">Call</a>` : ""}
+          <a class="act-dir" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Directions</a>
+          <a class="act-call" href="#" data-edit="${p.id}">Edit</a>
+        </div>
+      </div>`).join("")
+      : `<div class="card empty">No saved places yet.</div>`;
+    v.innerHTML = h;
+    $("#p-gps").addEventListener("click", ()=>{
+      if(!navigator.geolocation){ toast("Location not available"); return; }
+      navigator.geolocation.getCurrentPosition(
+        pos=>openPlaceForm(null, +pos.coords.latitude.toFixed(6), +pos.coords.longitude.toFixed(6)),
+        ()=>toast("Couldn't get your location")
+      );
+    });
+    v.querySelectorAll("[data-edit]").forEach(a=>a.addEventListener("click", e=>{ e.preventDefault(); openPlaceForm(a.dataset.edit); }));
+  } else {
+    let h = `<button class="btn ghost" id="t-addday" style="margin-bottom:12px">+ Add day</button>`;
+    h += state.tour.length ? state.tour.map((d,di)=>`
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <b>Day ${di+1} — ${esc(d.title)}</b>
+          <span style="white-space:nowrap">
+            <button class="chip ${shownDay===d.id?"sel":""}" data-show="${d.id}" style="box-shadow:none">Map</button>
+            <button class="chip" data-editday="${d.id}" style="box-shadow:none">Edit</button>
+          </span>
+        </div>
+        ${d.stops.map((st,i)=>`<div class="tour-stop" data-stop="${d.id}:${st.id}">
+          <span class="n">${i+1}</span>
+          <span style="flex:1"><b>${esc(st.name)}</b>${st.time?` · <span class="muted">${esc(st.time)}</span>`:""}${st.note?`<br><span class="muted">${esc(st.note)}</span>`:""}</span>
+          ${st.lat!=null?"📍":""}</div>`).join("") || `<div class="muted" style="margin-top:6px">No stops yet.</div>`}
+        <div style="margin-top:10px"><button class="chip" data-addstop="${d.id}" style="box-shadow:none">＋ Add stop${lastTap?" (at tapped point)":""}</button></div>
+      </div>`).join("")
+      : `<div class="card empty">No tour days yet. Add Day 1, then tap the map to drop numbered stops — the route draws itself.</div>`;
+    v.innerHTML = h;
+    $("#t-addday").addEventListener("click", ()=>openDayForm(null));
+    v.querySelectorAll("[data-show]").forEach(b=>b.addEventListener("click",()=>{ shownDay = shownDay===b.dataset.show ? null : b.dataset.show; drawMap(); renderMapPanel(); }));
+    v.querySelectorAll("[data-editday]").forEach(b=>b.addEventListener("click",()=>openDayForm(b.dataset.editday)));
+    v.querySelectorAll("[data-addstop]").forEach(b=>b.addEventListener("click",()=>openStopForm(b.dataset.addstop, null, lastTap?lastTap.lat:null, lastTap?lastTap.lng:null)));
+    v.querySelectorAll("[data-stop]").forEach(el=>el.addEventListener("click",()=>{ const [d,s]=el.dataset.stop.split(":"); openStopForm(d, s); }));
+  }
+}
+
+function openPlaceForm(id, lat, lng){
+  const p = id ? state.places.find(x=>x.id===id) : null;
+  const s = p || {name:"", cat:PLACE_CATS[0], phone:"", notes:"", lat, lng};
+  openSheet(`
+    <h2>${p ? "Edit place" : "Save place"}</h2>
+    <label>Name</label><input id="pl-name" value="${esc(s.name)}" placeholder="e.g. Zanko Dental Lab">
+    <label>Category</label><select id="pl-cat">${PLACE_CATS.map(c=>`<option ${c===s.cat?"selected":""}>${c}</option>`).join("")}</select>
+    <label>Phone / WhatsApp</label><input id="pl-phone" inputmode="tel" value="${esc(s.phone)}" placeholder="e.g. 0750 123 4567">
+    <label>Notes</label><textarea id="pl-notes" rows="2" placeholder="Prices, working hours, who to ask for…">${esc(s.notes)}</textarea>
+    <p class="muted" style="margin-top:8px">📌 ${(+s.lat).toFixed(4)}, ${(+s.lng).toFixed(4)}</p>
+    <div style="height:10px"></div>
+    <button class="btn" id="pl-save">${p ? "Save" : "Save place"}</button>
+    ${p ? `<div style="height:8px"></div><button class="btn danger" id="pl-del">Delete place</button>` : ""}
+  `);
+  $("#pl-save").addEventListener("click",()=>{
+    const name = $("#pl-name").value.trim();
+    if(!name){ toast("Add a name"); return; }
+    const data = {name, cat:$("#pl-cat").value, phone:$("#pl-phone").value.trim(), notes:$("#pl-notes").value.trim(), lat:+s.lat, lng:+s.lng};
+    if(p) Object.assign(p, data); else state.places.push({id:cid(), ...data});
+    save(); closeSheet(); drawMap(); renderMapPanel(); toast("Place saved");
+  });
+  if(p) $("#pl-del").addEventListener("click",()=>{
+    if(!confirm("Delete this place?")) return;
+    state.places = state.places.filter(x=>x.id!==p.id);
+    save(); closeSheet(); drawMap(); renderMapPanel();
+  });
+}
+
+function openDayForm(id){
+  const d = id ? state.tour.find(x=>x.id===id) : null;
+  openSheet(`
+    <h2>${d ? "Edit day" : "New tour day"}</h2>
+    <label>Day title</label><input id="d-title" value="${esc(d?d.title:"")}" placeholder="e.g. Citadel & old bazaar">
+    <div style="height:14px"></div>
+    <button class="btn" id="d-save">${d ? "Save" : "Add day"}</button>
+    ${d ? `<div style="height:8px"></div><button class="btn danger" id="d-del">Delete day & its stops</button>` : ""}
+  `);
+  $("#d-save").addEventListener("click",()=>{
+    const title = $("#d-title").value.trim() || "Untitled day";
+    if(d) d.title = title; else state.tour.push({id:cid(), title, stops:[]});
+    save(); closeSheet(); renderMapPanel(); toast("Saved");
+  });
+  if(d) $("#d-del").addEventListener("click",()=>{
+    if(!confirm("Delete this day and all its stops?")) return;
+    state.tour = state.tour.filter(x=>x.id!==d.id);
+    if(shownDay===d.id) shownDay = null;
+    save(); closeSheet(); drawMap(); renderMapPanel();
+  });
+}
+
+function openStopForm(dayId, stopId, lat, lng){
+  let day = dayId ? state.tour.find(x=>x.id===dayId) : null;
+  const st = (day && stopId) ? day.stops.find(x=>x.id===stopId) : null;
+  const s = st || {name:"", time:"", note:"", lat:(lat??null), lng:(lng??null)};
+  const daySelect = !st && !dayId
+    ? `<label>Which day?</label><select id="st-day">${state.tour.map((d,i)=>`<option value="${d.id}">Day ${i+1} — ${esc(d.title)}</option>`).join("")}<option value="__new">＋ New day</option></select>`
+    : "";
+  openSheet(`
+    <h2>${st ? "Edit stop" : "Add tour stop"}</h2>
+    ${daySelect}
+    <label>Stop name</label><input id="st-name" value="${esc(s.name)}" placeholder="e.g. Erbil Citadel">
+    <div class="row2">
+      <div><label>Time</label><input id="st-time" value="${esc(s.time)}" placeholder="e.g. 10:00 AM"></div>
+      <div><label>Note</label><input id="st-note" value="${esc(s.note)}" placeholder="e.g. buy tickets"></div>
+    </div>
+    <p class="muted" style="margin-top:8px">${s.lat!=null ? "📌 Pinned at "+(+s.lat).toFixed(4)+", "+(+s.lng).toFixed(4) : "No pin — tap the map first to place this stop, or save without one."}</p>
+    <div style="height:10px"></div>
+    <button class="btn" id="st-save">${st ? "Save" : "Add stop"}</button>
+    ${st ? `<div style="height:8px"></div><button class="btn danger" id="st-del">Delete stop</button>` : ""}
+  `);
+  $("#st-save").addEventListener("click",()=>{
+    const name = $("#st-name").value.trim();
+    if(!name){ toast("Give the stop a name"); return; }
+    if(!st && !day){
+      const sel = $("#st-day");
+      if(sel && sel.value !== "__new") day = state.tour.find(x=>x.id===sel.value);
+      if(!day){ day = {id:cid(), title:"Day "+(state.tour.length+1), stops:[]}; state.tour.push(day); }
+    }
+    const data = {name, time:$("#st-time").value.trim(), note:$("#st-note").value.trim(), lat:s.lat, lng:s.lng};
+    if(st) Object.assign(st, data); else day.stops.push({id:cid(), ...data});
+    save(); closeSheet();
+    if(!st){ shownDay = day.id; mapSub = "tour"; }
+    drawMap(); renderMapPanel(); toast("Stop saved");
+  });
+  if(st) $("#st-del").addEventListener("click",()=>{
+    if(!confirm("Delete this stop?")) return;
+    day.stops = day.stops.filter(x=>x.id!==st.id);
+    save(); closeSheet(); drawMap(); renderMapPanel();
+  });
+}
+
+/* ---------------- Settings / backup ---------------- */
+$("#btnSettings").addEventListener("click",()=>{
+  openSheet(`
+    <h2>Backup & settings</h2>
+    <p class="muted">Data lives on this device only. Export a backup before clearing your browser or switching phones.</p>
+    <div style="height:10px"></div>
+    <button class="btn" id="s-export">Export backup (.json)</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="s-import">Import backup</button>
+    <input type="file" id="s-file" accept="application/json" style="display:none">
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="s-resetq">Reset quota counts to 0</button>
+    <div style="height:8px"></div>
+    <button class="btn danger" id="s-wipe">Erase all data</button>
+    <p class="muted" style="text-align:center;margin-top:14px">DentLab · ${state.cases.length} cases · ${state.quota.length} requirements</p>
+  `);
+  $("#s-export").addEventListener("click",()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "dentlab-backup-" + todayISO() + ".json";
+    a.click(); URL.revokeObjectURL(a.href);
+    toast("Backup downloaded");
+  });
+  $("#s-import").addEventListener("click",()=>$("#s-file").click());
+  $("#s-file").addEventListener("change",e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{ try{
+      const s = JSON.parse(r.result);
+      if(!s || !Array.isArray(s.cases) || !Array.isArray(s.quota)) throw 0;
+      s.places = s.places || []; s.tour = s.tour || [];
+      state = s; save(); closeSheet(); renderTabs(); toast("Backup restored");
+    }catch(_){ toast("That file isn't a DentLab backup"); } };
+    r.readAsText(f);
+  });
+  $("#s-resetq").addEventListener("click",()=>{
+    if(!confirm("Set all requirement counts back to 0?")) return;
+    state.quota.forEach(q=>q.done=0); save(); closeSheet(); renderTabs(); toast("Quota reset");
+  });
+  $("#s-wipe").addEventListener("click",()=>{
+    if(!confirm("Erase ALL cases and requirements? Export a backup first if unsure.")) return;
+    state = { cases:[], quota: DEFAULT_QUOTA.map(q=>({...q, id:qid()})) };
+    save(); closeSheet(); renderTabs(); toast("All data erased");
+  });
+});
+
+/* ---------------- Sheet plumbing ---------------- */
+function openSheet(html){
+  $("#sheet").innerHTML = `<div class="grab"></div>` + html;
+  $("#overlay").classList.add("show");
+  requestAnimationFrame(()=>$("#sheet").classList.add("show"));
+}
+function closeSheet(){
+  $("#sheet").classList.remove("show");
+  $("#overlay").classList.remove("show");
+}
+$("#overlay").addEventListener("click", closeSheet);
+
+/* ---------------- Boot ---------------- */
+$("#fab").addEventListener("click",()=>openCaseForm(null));
+$("#hdrDate").textContent = new Date().toLocaleDateString(undefined,{weekday:"long", day:"numeric", month:"long"});
+renderTabs();
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
 </body>
 </html>
